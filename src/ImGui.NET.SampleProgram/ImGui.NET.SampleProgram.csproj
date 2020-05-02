@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ImGui.NET\ImGui.NET.csproj" />
+    <PackageReference Include="RtMidi.Core" Version="1.0.50" />
     <PackageReference Include="Veldrid" Version="4.3.3" />
     <PackageReference Include="Veldrid.StartupUtilities" Version="4.3.3" />
   </ItemGroup>

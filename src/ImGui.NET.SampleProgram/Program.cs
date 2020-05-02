@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -7,10 +8,14 @@ using System.Numerics;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using RtMidi.Core;
 using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
 using static ImGuiNET.ImGuiNative;
+
+using RtMidi.Core.Devices;
+using RtMidi.Core.Messages;
 
 namespace ImGuiNET
 {
@@ -63,6 +68,58 @@ namespace ImGuiNET
 
         static void Main(string[] args)
         {
+            foreach (var api in MidiDeviceManager.Default.GetAvailableMidiApis())
+                Console.WriteLine($"Available API: {api}");
+                
+            // Listen to all available midi devices
+            void ControlChangeHandler(IMidiInputDevice sender, in ControlChangeMessage msg)
+            {
+                Console.WriteLine($"[{sender.Name}] ControlChange: Channel:{msg.Channel} Control:{msg.Control} Value:{msg.Value}");
+            }
+
+            void ChannelPressureMessageHandler(IMidiInputDevice sender, in ChannelPressureMessage msg)
+            {
+                Console.WriteLine($"[{sender.Name}] Channel Pressure Message: Channel:{msg.Channel} Pressure:{msg.Pressure}");
+            }
+            
+            void NoteOnHandler(IMidiInputDevice sender, in NoteOnMessage msg)
+            {
+                Console.WriteLine($"[{sender.Name}] Note On Channel:{msg.Channel} Key:{msg.Key} Velocity:{msg.Velocity}");
+            }
+            
+            void NoteOffHandler(IMidiInputDevice sender, in NoteOffMessage msg)
+            {
+                Console.WriteLine($"[{sender.Name}] Note Off - Channel:{msg.Channel} Key:{msg.Key} Velocity:{msg.Velocity}");
+            }
+            
+            void NrpnHandler(IMidiInputDevice sender, in NrpnMessage msg)
+            {
+                Console.WriteLine($"[{sender.Name}] Nrpn - Channel:{msg.Channel} Parameter:{msg.Parameter} Value:{msg.Value}");
+            }
+            
+            void ProgramChangeHandler(IMidiInputDevice sender, in ProgramChangeMessage msg)
+            {
+                Console.WriteLine($"[{sender.Name}] Note Program Change - Channel:{msg.Channel} Program:{msg.Program}");
+            }
+            
+            var devices = new List<IMidiInputDevice>();
+            
+            foreach (var inputDeviceInfo in MidiDeviceManager.Default.InputDevices)
+            {
+                Console.WriteLine($"Opening {inputDeviceInfo.Name}");
+
+                var inputDevice = inputDeviceInfo.CreateDevice();
+                devices.Add(inputDevice);
+                    
+                inputDevice.ControlChange += ControlChangeHandler;
+                inputDevice.ChannelPressure += ChannelPressureMessageHandler;
+                inputDevice.Nrpn += NrpnHandler;
+                inputDevice.NoteOn += NoteOnHandler;
+                inputDevice.NoteOff += NoteOffHandler;
+                inputDevice.ProgramChange += ProgramChangeHandler;
+                inputDevice.Open();
+            } 
+                
             // Create window, GraphicsDevice, and all resources necessary for the demo.
             VeldridStartup.CreateWindowAndGraphicsDevice(
                 new WindowCreateInfo(50, 50, 1280, 720, WindowState.Normal, "ImGui.NET Sample Program"),
@@ -143,6 +200,11 @@ namespace ImGuiNET
         {
             if (ImGui.BeginTabBar("test"))
             {
+                if (ImGui.BeginTabItem("MK2"))
+                {
+                    ImGui.EndTabItem();
+                }
+
                 if (ImGui.BeginTabItem("Movement"))
                 {
                     ImGui.EndTabItem();
