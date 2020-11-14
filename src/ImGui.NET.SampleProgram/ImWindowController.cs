@@ -3,7 +3,7 @@ using ImGuiNET;
 
 namespace ImGui.NET.SampleProgram
 {
-    class ImWindowController : AbstractImController
+    public class ImWindowController : AbstractImController
     {
         public readonly string Title;
         public int Width { get; set; } = 800;
@@ -45,9 +45,11 @@ namespace ImGui.NET.SampleProgram
             if (Enabled)
             {
                 ImGuiNET.ImGui.SetNextWindowSize(new Vector2(Width, Height), SizeCondition);
+                Styles?.Apply();
                 ImGuiNET.ImGui.Begin(Title, ref Enabled, WindowStyle);
                 DrawWindowElements();
                 ImGuiNET.ImGui.End();
+                Styles?.Restore();
             }
         }
 

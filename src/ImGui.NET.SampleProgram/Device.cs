@@ -8,32 +8,34 @@ namespace ImGui.NET.SampleProgram
 {
     class Device
     {
-        protected Sdl2Window _window;
-        protected GraphicsDevice _gd;
-        protected CommandList _cl;
-        protected ImGuiController _controller;
-        protected readonly Vector3 ClearColor = new Vector3(0.45f, 0.55f, 0.6f);
+        public Vector3 ClearColor = new Vector3(0.33f, 0.33f, 0.33f);
+
+        private Sdl2Window _window;
+        private GraphicsDevice _gd;
+        private CommandList _cl;
+        private ImGuiController _controller;
 
         public void Create()
         {
-            // Create window, GraphicsDevice, and all resources necessary for the demo.
             VeldridStartup.CreateWindowAndGraphicsDevice(
                 new WindowCreateInfo(50, 50, 1280, 720, WindowState.Normal, "ImGui.NET Sample Program"),
                 new GraphicsDeviceOptions(true, null, true),
                 out _window,
                 out _gd);
+
             _window.Resized += () =>
             {
                 _gd.MainSwapchain.Resize((uint) _window.Width, (uint) _window.Height);
                 _controller.WindowResized(_window.Width, _window.Height);
             };
+
             _cl = _gd.ResourceFactory.CreateCommandList();
+
             _controller = new ImGuiController(_gd, _gd.MainSwapchain.Framebuffer.OutputDescription, _window.Width, _window.Height);
         }
 
         public void Shutdown()
         {
-            // Clean up Veldrid resources
             _gd.WaitForIdle();
             _controller.Dispose();
             _cl.Dispose();
@@ -48,7 +50,9 @@ namespace ImGui.NET.SampleProgram
                 return false;
             }
 
-            _controller.Update(1f / 60f, snapshot); // Feed the input events to our ImGui controller, which passes them through to ImGui.
+            // Feed the input events to our ImGui controller, which passes them through to ImGui.
+            _controller.Update(1f / 60f, snapshot);
+
             return true;
         }
 
@@ -62,7 +66,6 @@ namespace ImGui.NET.SampleProgram
             _gd.SubmitCommands(_cl);
             _gd.SwapBuffers(_gd.MainSwapchain);
         }
-
 
         public bool Exists()
         {

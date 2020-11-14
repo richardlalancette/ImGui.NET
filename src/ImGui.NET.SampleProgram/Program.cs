@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using System.Collections.Generic;
+using ImGuiNET;
 
 namespace ImGui.NET.SampleProgram
 {
@@ -7,9 +8,28 @@ namespace ImGui.NET.SampleProgram
         private static readonly Device Device = new Device();
         private static readonly ImWindowController MainWindow = new ImWindowController("Main");
         private static readonly ImWindowController SecondWindow = new ImWindowController("Second");
-        private static readonly ImWindowController ThirdWindow = new ImWindowController("Third", 1024, 768, ImGuiCond.Always);
+        private static readonly ImWindowController StyleWindow = new ImStyleWindowController("StyleWindow", 400, 800, ImGuiCond.Once);
+        private static Dictionary<string, ImWindowController> Controllers { get; set; } = new Dictionary<string, ImWindowController>();
 
         private static void Main(string[] args)
+        {
+            Setup();
+            Run();
+        }
+
+        private static void Setup()
+        {
+            var mainStyleSheet = new StyleSheet();
+            mainStyleSheet.Styles.Add("DarkWindowStyle", new DarkWindowStyle());
+
+            MainWindow.ApplyStyleSheet(mainStyleSheet);
+
+            Controllers.Add(MainWindow.Title, MainWindow);
+            Controllers.Add(SecondWindow.Title, SecondWindow);
+            Controllers.Add(StyleWindow.Title, StyleWindow);
+        }
+
+        private static void Run()
         {
             Device.Create();
 
@@ -19,7 +39,7 @@ namespace ImGui.NET.SampleProgram
                 {
                     Draw();
                 }
-                
+
                 Device.End();
             }
 
@@ -28,9 +48,10 @@ namespace ImGui.NET.SampleProgram
 
         private static void Draw()
         {
-            MainWindow.Draw();
-            SecondWindow.Draw();
-            ThirdWindow.Draw();
+            foreach (var controller in Controllers)
+            {
+                controller.Value.Draw();
+            }
         }
     }
 }
