@@ -8,7 +8,8 @@ namespace ImGui.NET.SampleProgram
         private static readonly Device Device = new Device();
         private static readonly ImWindowController MainWindow = new ImWindowController("Main");
         private static readonly ImWindowController SecondWindow = new ImWindowController("Second");
-        private static readonly ImWindowController StyleWindow = new ImStyleWindowController("StyleWindow", 400, 800, ImGuiCond.Once);
+        private static readonly ImWindowController StylesWindow = new ImStyleWindowController("Styles", 400, 1024, ImGuiCond.Once);
+        private static readonly ImWindowController NodeEditorWindow = new ImNodeEditorWindowController("NodeEditor");
         private static Dictionary<string, ImWindowController> Controllers { get; set; } = new Dictionary<string, ImWindowController>();
 
         private static void Main(string[] args)
@@ -26,7 +27,8 @@ namespace ImGui.NET.SampleProgram
 
             Controllers.Add(MainWindow.Title, MainWindow);
             Controllers.Add(SecondWindow.Title, SecondWindow);
-            Controllers.Add(StyleWindow.Title, StyleWindow);
+            Controllers.Add(StylesWindow.Title, StylesWindow);
+            Controllers.Add(NodeEditorWindow.Title, NodeEditorWindow);
         }
 
         private static void Run()
