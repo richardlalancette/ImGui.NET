@@ -28,7 +28,8 @@ namespace ImGui.NET.SampleProgram
         private const float NodeSlotRadius = 4.0f;
         private const float GridSize = 64.0f;
         private const float DefaultNodeWidth = 160.0f;
-        private const float LinkDefaultThickness = 3.0f;
+        private const float LinkDefaultThickness = 5.0f;
+        private const int NodeListDefaultWidth = 200;
 
         private List<Node> _nodes = new List<Node>();
         private List<NodeLink> _links = new List<NodeLink>();
@@ -52,7 +53,7 @@ namespace ImGui.NET.SampleProgram
 
         protected override void DrawWindowElements()
         {
-            uint color1 = Im.GetColorU32(new Vector4(0.23f, 0.23f, 0.27f, 0.8f));
+            uint color1 = Im.GetColorU32(new Vector4(0.23f, 0.23f, 0.23f, 0.8f));
             uint greyColor = Im.GetColorU32(new Vector4(100.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 255.0f / 255.0f));
             uint lightGreyColor = Im.GetColorU32(new Vector4(60.0f / 255.0f, 60.0f / 255.0f, 60.0f / 255.0f, 255.0f / 255.0f));
             uint lightGrey2Color = Im.GetColorU32(new Vector4(75.0f / 255.0f, 75.0f / 255.0f, 75.0f / 255.0f, 255.0f / 255.0f));
@@ -71,19 +72,19 @@ namespace ImGui.NET.SampleProgram
             Im.BeginGroup();
 
             // Create our child canvas
-            Im.Text($"Hold middle mouse button to scroll {_panningPosition.X}, {_panningPosition.Y})");
+            Im.Text($"Hold middle mouse button to pan {_panningPosition.X}, {_panningPosition.Y})");
             Im.SameLine();
             Im.Checkbox("Show grid", ref _showGrid);
 
             Im.PushStyleVar(ImGuiStyleVar.FramePadding, ImVec2.One);
             Im.PushStyleVar(ImGuiStyleVar.WindowPadding, ImVec2.Zero);
             Im.PushStyleColor(ImGuiCol.ChildBg, color1);
-            Im.BeginChild("scrolling_region", ImVec2.Zero, true, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoMove);
+            Im.BeginChild("panning_region", ImVec2.Zero, true, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoMove);
             Im.PopStyleVar(); // WindowPadding
 
             Vector2 panningOffset = Im.GetCursorScreenPos() + _panningPosition;
             ImDrawListPtr drawList = Im.GetWindowDrawList();
-            DisplayGrid(GridSize, drawList);
+            DisplayGrid(drawList);
             drawList.ChannelsSplit(2);
             DisplayNodeLinks(ref panningOffset, ref drawList);
             DisplayNodes(ref panningOffset, ref drawList, lightGrey2Color, lightGreyColor, greyColor);
@@ -106,7 +107,7 @@ namespace ImGui.NET.SampleProgram
             }
         }
 
-        private void DrawContextMenu(Vector2 scrollingOffset)
+        private void DrawContextMenu(Vector2 panningOffset)
         {
             _openContextMenu = false;
 
@@ -147,7 +148,7 @@ namespace ImGui.NET.SampleProgram
                     node = _nodes[_nodeSelectedId];
                 }
 
-                ImVec2 scenePos = Im.GetMousePosOnOpeningCurrentPopup() - scrollingOffset;
+                ImVec2 scenePos = Im.GetMousePosOnOpeningCurrentPopup() - panningOffset;
 
                 if (node != null)
                 {
@@ -184,7 +185,7 @@ namespace ImGui.NET.SampleProgram
             Im.PopStyleVar();
         }
 
-        private void DisplayNodes(ref Vector2 scrollingOffset, ref ImDrawListPtr drawList, uint lightGrey2Color, uint lightGreyColor, uint greyColor)
+        private void DisplayNodes(ref Vector2 panningOffset, ref ImDrawListPtr drawList, uint lightGrey2Color, uint lightGreyColor, uint greyColor)
         {
             Im.PushItemWidth(DefaultNodeWidth);
 
@@ -193,7 +194,7 @@ namespace ImGui.NET.SampleProgram
                 var node = _nodes[nodeIdx];
 
                 Im.PushID(node.Id);
-                ImVec2 nodeRectMin = scrollingOffset + node.Pos;
+                ImVec2 nodeRectMin = panningOffset + node.Pos;
 
                 // Display node contents first
                 drawList.ChannelsSetCurrent(ForegroundChannel);
@@ -250,14 +251,14 @@ namespace ImGui.NET.SampleProgram
 
                 for (int slotIdx = 0; slotIdx < node.InputsCount; slotIdx++)
                 {
-                    drawList.AddCircleFilled(scrollingOffset + node.GetInputSlotPos(slotIdx), NodeSlotRadius, 0xffffffff);
-                    drawList.AddCircleFilled(scrollingOffset + node.GetInputSlotPos(slotIdx), NodeSlotRadius / 2, 0xff777777);
+                    drawList.AddCircleFilled(panningOffset + node.GetInputSlotPos(slotIdx), NodeSlotRadius, 0xffffffff);
+                    drawList.AddCircleFilled(panningOffset + node.GetInputSlotPos(slotIdx), NodeSlotRadius / 2, 0xff777777);
                 }
 
                 for (int slotIdx = 0; slotIdx < node.OutputsCount; slotIdx++)
                 {
-                    drawList.AddCircleFilled(scrollingOffset + node.GetOutputSlotPos(slotIdx), NodeSlotRadius, 0xffffffff);
-                    drawList.AddCircleFilled(scrollingOffset + node.GetOutputSlotPos(slotIdx), NodeSlotRadius / 2, 0xff777777);
+                    drawList.AddCircleFilled(panningOffset + node.GetOutputSlotPos(slotIdx), NodeSlotRadius, 0xffffffff);
+                    drawList.AddCircleFilled(panningOffset + node.GetOutputSlotPos(slotIdx), NodeSlotRadius / 2, 0xff777777);
                 }
 
                 Im.PopID();
@@ -266,7 +267,7 @@ namespace ImGui.NET.SampleProgram
             Im.PopItemWidth();
         }
 
-        private void DisplayNodeLinks(ref Vector2 scrollingOffset, ref ImDrawListPtr drawList)
+        private void DisplayNodeLinks(ref Vector2 panningOffset, ref ImDrawListPtr drawList)
         {
             drawList.ChannelsSetCurrent(BackgroundChannel);
 
@@ -274,26 +275,26 @@ namespace ImGui.NET.SampleProgram
             {
                 Node nodeIn = _nodes[link.InputIdx];
                 Node nodeOut = _nodes[link.OutputIdx];
-                ImVec2 p1 = scrollingOffset + nodeIn.GetOutputSlotPos(link.InputSlot);
-                ImVec2 p2 = scrollingOffset + nodeOut.GetInputSlotPos(link.OutputSlot);
-                drawList.AddBezierCurve(p1, p1 + new ImVec2(+20, 0), p2 + new ImVec2(-20, 0), p2, 0xffdddddd, LinkDefaultThickness * 2);
-                drawList.AddBezierCurve(p1, p1 + new ImVec2(+20, 0), p2 + new ImVec2(-20, 0), p2, 0xff222222, LinkDefaultThickness / 2);
+                ImVec2 p1 = panningOffset + nodeIn.GetOutputSlotPos(link.InputSlot);
+                ImVec2 p2 = panningOffset + nodeOut.GetInputSlotPos(link.OutputSlot);
+                drawList.AddBezierCurve(p1, p1 + new ImVec2(+20, 0), p2 + new ImVec2(-20, 0), p2, 0xffdddddd, LinkDefaultThickness);
+                drawList.AddBezierCurve(p1, p1 + new ImVec2(+20, 0), p2 + new ImVec2(-20, 0), p2, 0xff111111, 1);
             }
         }
 
-        private void DisplayGrid(float gridSize, ImDrawListPtr drawList)
+        private void DisplayGrid(ImDrawListPtr drawList)
         {
             if (_showGrid)
             {
                 ImVec2 winPos = Im.GetCursorScreenPos();
                 ImVec2 canvasSize = Im.GetWindowSize();
 
-                for (float x = _panningPosition.X % gridSize; x < canvasSize.X; x += gridSize)
+                for (float x = _panningPosition.X % GridSize; x < canvasSize.X; x += GridSize)
                 {
                     drawList.AddLine(new ImVec2(x, 0.0f) + winPos, new ImVec2(x, canvasSize.Y) + winPos, 0xff555555);
                 }
 
-                for (float y = _panningPosition.Y % gridSize; y < canvasSize.Y; y += gridSize)
+                for (float y = _panningPosition.Y % GridSize; y < canvasSize.Y; y += GridSize)
                 {
                     drawList.AddLine(new ImVec2(0.0f, y) + winPos, new ImVec2(canvasSize.X, y) + winPos, 0xff555555);
                 }
@@ -303,7 +304,7 @@ namespace ImGui.NET.SampleProgram
         // Draw a list of nodes on the left side
         private void DrawNodeList()
         {
-            Im.BeginChild("node_list", new ImVec2(100, 0));
+            Im.BeginChild("node_list", new ImVec2(NodeListDefaultWidth, 0));
             Im.Text("Nodes");
             Im.Separator();
 
