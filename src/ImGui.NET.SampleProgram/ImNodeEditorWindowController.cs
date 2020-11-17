@@ -30,14 +30,18 @@ namespace ImGui.NET.SampleProgram
         private const float DefaultNodeWidth = 160.0f;
         private const float LinkDefaultThickness = 5.0f;
         private const int NodeListDefaultWidth = 200;
+        private const uint NodeBorderColor = 0xFF999999;
+        private const uint GreyColor = 0xFF2B2B2B;
+        private const uint DarkGreyColor = 0xFF101010;
+        private const uint LightGrey = 0xFFC0C0C0;
+        private const uint White = 0xFFFFFFFF;
+        private const uint LinkColor = 0xFF111111;
+        private const uint LinkBorderColor = 0xFFCCCCCC;
 
         private List<Node> _nodes = new List<Node>();
         private List<NodeLink> _links = new List<NodeLink>();
         private bool _showGrid = true;
-        private int _nodeSelectedId = -1;
         private bool _openContextMenu;
-        private int _nodeHoveredInListId = -1;
-        private int _nodeHoveredInSceneId = -1;
 
         private ImVec2 _panningPosition = ImVec2.Zero;
         private static readonly Vector2 NodeWindowPadding = new ImVec2(8.0f, 8.0f);
@@ -53,49 +57,52 @@ namespace ImGui.NET.SampleProgram
 
         protected override void DrawWindowElements()
         {
-            uint color1 = Im.GetColorU32(new Vector4(0.23f, 0.23f, 0.23f, 0.8f));
-            uint greyColor = Im.GetColorU32(new Vector4(100.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 255.0f / 255.0f));
-            uint lightGreyColor = Im.GetColorU32(new Vector4(60.0f / 255.0f, 60.0f / 255.0f, 60.0f / 255.0f, 255.0f / 255.0f));
-            uint lightGrey2Color = Im.GetColorU32(new Vector4(75.0f / 255.0f, 75.0f / 255.0f, 75.0f / 255.0f, 255.0f / 255.0f));
-
             base.DrawWindowElements();
 
+            foreach (var node in _nodes)
+            {
+                node.Hovered = false;
+            }
+
             DrawNodeList();
-
             Im.SameLine();
-
-            DrawEditorCanvas(color1, lightGrey2Color, lightGreyColor, greyColor);
+            DrawEditor();
         }
 
-        private void DrawEditorCanvas(uint color1, uint lightGrey2Color, uint lightGreyColor, uint greyColor)
+        private void DrawEditor()
         {
             Im.BeginGroup();
+            {
+                DrawTopBar();
 
-            // Create our child canvas
-            Im.Text($"Hold middle mouse button to pan {_panningPosition.X}, {_panningPosition.Y})");
-            Im.SameLine();
-            Im.Checkbox("Show grid", ref _showGrid);
+                Im.PushStyleVar(ImGuiStyleVar.FramePadding, ImVec2.One);
+                Im.PushStyleVar(ImGuiStyleVar.WindowPadding, ImVec2.Zero);
+                Im.PushStyleColor(ImGuiCol.ChildBg, GreyColor);
+                Im.BeginChild("panning_region", ImVec2.Zero, true, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoMove);
+                Im.PopStyleVar(); // WindowPadding
 
-            Im.PushStyleVar(ImGuiStyleVar.FramePadding, ImVec2.One);
-            Im.PushStyleVar(ImGuiStyleVar.WindowPadding, ImVec2.Zero);
-            Im.PushStyleColor(ImGuiCol.ChildBg, color1);
-            Im.BeginChild("panning_region", ImVec2.Zero, true, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoMove);
-            Im.PopStyleVar(); // WindowPadding
+                Vector2 panningOffset = Im.GetCursorScreenPos() + _panningPosition;
+                ImDrawListPtr drawList = Im.GetWindowDrawList();
+                DisplayGrid(drawList);
+                drawList.ChannelsSplit(2);
+                DisplayNodeLinks(panningOffset, ref drawList);
+                DisplayNodes(panningOffset, ref drawList);
+                drawList.ChannelsMerge();
+                DrawContextMenu(panningOffset);
+                HandlePanning();
 
-            Vector2 panningOffset = Im.GetCursorScreenPos() + _panningPosition;
-            ImDrawListPtr drawList = Im.GetWindowDrawList();
-            DisplayGrid(drawList);
-            drawList.ChannelsSplit(2);
-            DisplayNodeLinks(ref panningOffset, ref drawList);
-            DisplayNodes(ref panningOffset, ref drawList, lightGrey2Color, lightGreyColor, greyColor);
-            drawList.ChannelsMerge();
-            DrawContextMenu(panningOffset);
-            HandlePanning();
-
-            Im.EndChild();
-            Im.PopStyleColor();
-            Im.PopStyleVar();
+                Im.EndChild();
+                Im.PopStyleColor();
+                Im.PopStyleVar();
+            }
             Im.EndGroup();
+        }
+
+        private void DrawTopBar()
+        {
+            Im.Checkbox("Show grid", ref _showGrid);
+            Im.SameLine();
+            Im.Text($"- Hold middle mouse button to pan {_panningPosition.X}, {_panningPosition.Y})");
         }
 
         private void HandlePanning()
@@ -115,9 +122,6 @@ namespace ImGui.NET.SampleProgram
             {
                 if (Im.IsWindowHovered(ImGuiHoveredFlags.AllowWhenBlockedByPopup) || !Im.IsAnyItemHovered())
                 {
-                    _nodeSelectedId = -1;
-                    _nodeHoveredInListId = -1;
-                    _nodeHoveredInSceneId = -1;
                     _openContextMenu = true;
                 }
             }
@@ -125,58 +129,17 @@ namespace ImGui.NET.SampleProgram
             if (_openContextMenu)
             {
                 Im.OpenPopup("context_menu");
-
-                if (_nodeHoveredInListId != -1)
-                {
-                    _nodeSelectedId = _nodeHoveredInListId;
-                }
-
-                if (_nodeHoveredInSceneId != -1)
-                {
-                    _nodeSelectedId = _nodeHoveredInSceneId;
-                }
             }
 
             Im.PushStyleVar(ImGuiStyleVar.WindowPadding, NodeWindowPadding);
 
             if (Im.BeginPopup("context_menu"))
             {
-                Node node = null;
-
-                if (_nodeSelectedId != -1)
-                {
-                    node = _nodes[_nodeSelectedId];
-                }
-
                 ImVec2 scenePos = Im.GetMousePosOnOpeningCurrentPopup() - panningOffset;
 
-                if (node != null)
+                if (Im.MenuItem("Add"))
                 {
-                    Im.Text($"Node {node.Name}");
-                    Im.Separator();
-
-                    if (Im.MenuItem("Rename..", null, false, false))
-                    {
-                    }
-
-                    if (Im.MenuItem("Delete", null, false, false))
-                    {
-                    }
-
-                    if (Im.MenuItem("Copy", null, false, false))
-                    {
-                    }
-                }
-                else
-                {
-                    if (Im.MenuItem("Add"))
-                    {
-                        _nodes.Add(new Node(_nodes.Count, "New node", scenePos, 0.5f, new ImVec4(100.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 255.0f / 255.0f), 2, 2));
-                    }
-
-                    if (Im.MenuItem("Paste", null, false, false))
-                    {
-                    }
+                    _nodes.Add(new Node(_nodes.Count, "New node", scenePos, 0.5f, new ImVec4(100.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 255.0f / 255.0f), 2, 2));
                 }
 
                 Im.EndPopup();
@@ -185,7 +148,7 @@ namespace ImGui.NET.SampleProgram
             Im.PopStyleVar();
         }
 
-        private void DisplayNodes(ref Vector2 panningOffset, ref ImDrawListPtr drawList, uint lightGrey2Color, uint lightGreyColor, uint greyColor)
+        private void DisplayNodes(Vector2 panningOffset, ref ImDrawListPtr drawList)
         {
             Im.PushItemWidth(DefaultNodeWidth);
 
@@ -196,11 +159,11 @@ namespace ImGui.NET.SampleProgram
                 Im.PushID(node.Id);
                 ImVec2 nodeRectMin = panningOffset + node.Pos;
 
-                // Display node contents first
                 drawList.ChannelsSetCurrent(ForegroundChannel);
                 bool oldAnyActive = Im.IsAnyItemActive();
                 Im.SetCursorScreenPos(nodeRectMin + NodeWindowPadding);
-                Im.BeginGroup(); // Lock horizontal position
+
+                Im.BeginGroup();
                 Im.Text(string.Format($"{node.Name}"));
                 Im.SliderFloat($"##value{nodeIdx}", ref node.Value, 0.0f, 1.0f, "Alpha %.2f");
                 Im.ColorEdit4("##color", ref node.Color);
@@ -218,36 +181,43 @@ namespace ImGui.NET.SampleProgram
 
                 if (Im.IsItemHovered())
                 {
-                    _nodeHoveredInSceneId = node.Id;
-                    _openContextMenu |= Im.IsMouseClicked(ImGuiMouseButton.Right);
+                    node.Hovered = true;
+
+                    if (Im.IsMouseDown(ImGuiMouseButton.Left))
+                        node.Down = true;
+
+                    if (Im.IsMouseReleased(ImGuiMouseButton.Left) && node.Down)
+                        node.Selected = !node.Selected;
+
+                    if (Im.IsMouseDragging(ImGuiMouseButton.Left) && node.Down)
+                        node.Down = false;
+
+                    _openContextMenu |= Im.IsMouseReleased(ImGuiMouseButton.Right);
                 }
 
-                bool nodeMovingActive = Im.IsItemActive();
-
-                if (nodeWidgetsActive || nodeMovingActive)
-                {
-                    _nodeSelectedId = node.Id;
-                }
-
-                if (nodeMovingActive && Im.IsMouseDragging(ImGuiMouseButton.Left))
+                if (Im.IsMouseDragging(ImGuiMouseButton.Left) && node.Selected)
                 {
                     ImGuiIOPtr io = Im.GetIO();
                     node.Pos += io.MouseDelta;
                 }
 
-                uint nodeBgColor;
-
-                if (_nodeHoveredInListId == node.Id || _nodeHoveredInSceneId == node.Id || (_nodeHoveredInListId == -1 && _nodeSelectedId == node.Id))
+                if (node.Hovered)
                 {
-                    nodeBgColor = 0xff666666;
+                    drawList.AddRectFilled(nodeRectMin, nodeRectMax, GreyColor, Im.GetStyle().FrameRounding);
                 }
                 else
                 {
-                    nodeBgColor = lightGrey2Color;
+                    drawList.AddRectFilled(nodeRectMin, nodeRectMax, DarkGreyColor, Im.GetStyle().FrameRounding);
                 }
 
-                drawList.AddRectFilled(nodeRectMin, nodeRectMax, nodeBgColor, Im.GetStyle().FrameRounding);
-                drawList.AddRect(nodeRectMin, nodeRectMax, 0xffaaaaaa, Im.GetStyle().FrameRounding);
+                if (node.Selected)
+                {
+                    drawList.AddRect(nodeRectMin, nodeRectMax, White, Im.GetStyle().FrameRounding);
+                }
+                else
+                {
+                    drawList.AddRect(nodeRectMin, nodeRectMax, NodeBorderColor, Im.GetStyle().FrameRounding);
+                }
 
                 for (int slotIdx = 0; slotIdx < node.InputsCount; slotIdx++)
                 {
@@ -267,7 +237,7 @@ namespace ImGui.NET.SampleProgram
             Im.PopItemWidth();
         }
 
-        private void DisplayNodeLinks(ref Vector2 panningOffset, ref ImDrawListPtr drawList)
+        private void DisplayNodeLinks(Vector2 panningOffset, ref ImDrawListPtr drawList)
         {
             drawList.ChannelsSetCurrent(BackgroundChannel);
 
@@ -277,8 +247,8 @@ namespace ImGui.NET.SampleProgram
                 Node nodeOut = _nodes[link.OutputIdx];
                 ImVec2 p1 = panningOffset + nodeIn.GetOutputSlotPos(link.InputSlot);
                 ImVec2 p2 = panningOffset + nodeOut.GetInputSlotPos(link.OutputSlot);
-                drawList.AddBezierCurve(p1, p1 + new ImVec2(+20, 0), p2 + new ImVec2(-20, 0), p2, 0xffdddddd, LinkDefaultThickness);
-                drawList.AddBezierCurve(p1, p1 + new ImVec2(+20, 0), p2 + new ImVec2(-20, 0), p2, 0xff111111, 1);
+                drawList.AddBezierCurve(p1, p1 + new ImVec2(+20, 0), p2 + new ImVec2(-20, 0), p2, LinkBorderColor, LinkDefaultThickness);
+                drawList.AddBezierCurve(p1, p1 + new ImVec2(+20, 0), p2 + new ImVec2(-20, 0), p2, LinkColor, 1);
             }
         }
 
@@ -312,15 +282,30 @@ namespace ImGui.NET.SampleProgram
             {
                 Im.PushID(node.Id);
 
-                if (Im.Selectable(node.Name, node.Id == _nodeSelectedId))
-                {
-                    _nodeSelectedId = node.Id;
-                }
+                if (node.Hovered)
+                    Im.PushStyleColor(ImGuiCol.Text, White);
+                else
+                    Im.PushStyleColor(ImGuiCol.Text, LightGrey);
+
+                Im.Selectable(node.Name, node.Selected);
+
+                if (node.Hovered)
+                    Im.PopStyleColor();
 
                 if (Im.IsItemHovered())
                 {
-                    _nodeHoveredInListId = node.Id;
-                    _openContextMenu |= Im.IsMouseClicked(ImGuiMouseButton.Right);
+                    node.Hovered = true;
+
+                    if (Im.IsMouseDown(ImGuiMouseButton.Left))
+                        node.Down = true;
+
+                    if (Im.IsMouseReleased(ImGuiMouseButton.Left) && node.Down)
+                        node.Selected = !node.Selected;
+
+                    if (Im.IsMouseDragging(ImGuiMouseButton.Left) && node.Down)
+                        node.Down = false;
+
+                    _openContextMenu |= Im.IsMouseReleased(ImGuiMouseButton.Right);
                 }
 
                 Im.PopID();

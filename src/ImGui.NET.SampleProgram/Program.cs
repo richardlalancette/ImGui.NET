@@ -25,9 +25,9 @@ namespace ImGui.NET.SampleProgram
 
             MainWindow.ApplyStyleSheet(mainStyleSheet);
 
-            Controllers.Add(MainWindow.Title, MainWindow);
-            Controllers.Add(SecondWindow.Title, SecondWindow);
-            Controllers.Add(StylesWindow.Title, StylesWindow);
+            // Controllers.Add(MainWindow.Title, MainWindow);
+            // Controllers.Add(SecondWindow.Title, SecondWindow);
+            // Controllers.Add(StylesWindow.Title, StylesWindow);
             Controllers.Add(NodeEditorWindow.Title, NodeEditorWindow);
         }
 
