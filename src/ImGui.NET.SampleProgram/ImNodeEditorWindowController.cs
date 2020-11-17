@@ -183,11 +183,27 @@ namespace ImGui.NET.SampleProgram
                 {
                     node.Hovered = true;
 
-                    if (Im.IsMouseDown(ImGuiMouseButton.Left))
-                        node.Down = true;
+                    if (Im.IsMouseDragging(ImGuiMouseButton.Left))
+                    {
+                        node.Dragged = true;
+                    }
 
+                    if (Im.IsMouseDown(ImGuiMouseButton.Left))
+                    {
+                        node.Down = true;
+                    }
+                    
                     if (Im.IsMouseReleased(ImGuiMouseButton.Left) && node.Down)
+                    {
+                        node.Down = false;
                         node.Selected = !node.Selected;
+                        node.Dragged = false;
+                    }
+
+                    if (Im.IsMouseReleased(ImGuiMouseButton.Left))
+                    {
+                        node.Dragged = false;
+                    }
 
                     if (Im.IsMouseDragging(ImGuiMouseButton.Left) && node.Down)
                         node.Down = false;
@@ -195,7 +211,7 @@ namespace ImGui.NET.SampleProgram
                     _openContextMenu |= Im.IsMouseReleased(ImGuiMouseButton.Right);
                 }
 
-                if (Im.IsMouseDragging(ImGuiMouseButton.Left) && node.Selected)
+                if (node.Dragged)
                 {
                     ImGuiIOPtr io = Im.GetIO();
                     node.Pos += io.MouseDelta;

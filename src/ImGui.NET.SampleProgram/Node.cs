@@ -15,6 +15,7 @@ namespace ImGui.NET.SampleProgram
         public bool Selected;
         public bool Hovered;
         public bool Down;
+        public bool Dragged;
 
         public Node(int id, string name, Vector2 pos, float value, Vector4 color, int inputsCount, int outputsCount)
         {
@@ -29,6 +30,7 @@ namespace ImGui.NET.SampleProgram
             Selected = false;
             Hovered = false;
             Down = false;
+            Dragged = false;
         }
 
         public Vector2 GetInputSlotPos(int slotNo)
