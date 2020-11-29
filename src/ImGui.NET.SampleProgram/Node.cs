@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Text.Json;
 using ImGuiNET;
 using ImVec2 = System.Numerics.Vector2;
 using ImVec3 = System.Numerics.Vector3;
@@ -7,13 +8,39 @@ using Im = ImGuiNET.ImGui;
 
 namespace ImGui.NET.SampleProgram
 {
+    class NodeData
+    {
+        public float Value = 1.0f;
+        public Vector4 color;
+
+        public NodeData()
+        {
+        }
+
+        public NodeData(float value)
+        {
+            Value = value;
+        }
+    }
+
+    class NodeView
+    {
+        public void Draw(string Name, int nodeIdx, NodeData data)
+        {
+            Im.Text(string.Format($"{Name}"));
+            Im.SliderFloat($"##value{nodeIdx}", ref data.Value, 0.0f, 1.0f, "Alpha %.2f");
+            Im.ColorEdit4("##color", ref data.color);
+        }
+    }
+    
     class Node
     {
         public readonly int Id;
         public readonly string Name;
         public Vector2 Pos;
         public Vector2 Size;
-        public float Value;
+        public NodeData Data = new NodeData();
+        public NodeView View = new NodeView();
         public Vector4 Color;
         public int InputsCount;
         public int OutputsCount;
@@ -22,13 +49,13 @@ namespace ImGui.NET.SampleProgram
         public bool Down;
         public bool Dragged;
 
-        public Node(int id, string name, Vector2 pos, float value, Vector4 color, int inputsCount, int outputsCount)
+        public Node(int id, string name, Vector2 pos, NodeData data, Vector4 color, int inputsCount, int outputsCount)
         {
             Id = id;
             Name = name;
             Pos = pos;
             Size = new Vector2();
-            Value = value;
+            Data = data;
             Color = color;
             InputsCount = inputsCount;
             OutputsCount = outputsCount;
@@ -60,9 +87,7 @@ namespace ImGui.NET.SampleProgram
             Im.SetCursorScreenPos(nodeRectMin + StyleSheet.NodeWindowPadding);
 
             Im.BeginGroup();
-            Im.Text(string.Format($"{Name}"));
-            Im.SliderFloat($"##value{nodeIdx}", ref Value, 0.0f, 1.0f, "Alpha %.2f");
-            Im.ColorEdit4("##color", ref Color);
+            View.Draw(Name, nodeIdx, Data);
             Im.EndGroup();
 
             // Save the size of what we have emitted and whether any of the widgets are being used

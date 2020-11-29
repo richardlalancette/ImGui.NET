@@ -32,11 +32,13 @@ namespace ImGui.NET.SampleProgram
 
         public ImNodeEditorWindowController(string title) : base(title)
         {
-            _nodes.Add(new Node(0, "MainTex", new ImVec2(40, 50), 0.5f, new ImVec4(1.0f, 0.4f, 0.4f, 1.0f), 1, 1));
-            _nodes.Add(new Node(1, "BumpMap", new ImVec2(40, 150), 0.42f, new ImVec4(0.8f, 0.4f, 0.8f, 1.0f), 1, 1));
-            _nodes.Add(new Node(2, "Combine", new ImVec2(270, 80), 1.0f, new ImVec4(0, 0.8f, 0.4f, 1.0f), 2, 2));
+            _nodes.Add(new Node(0, "MagickImage", new ImVec2(40, 50), new NodeData(0.5f), new ImVec4(1.0f, 0.4f, 0.4f, 1.0f), 1, 1));
+            _nodes.Add(new Node(1, "MagickImage", new ImVec2(40, 150), new NodeData(0.42f), new ImVec4(0.8f, 0.4f, 0.8f, 1.0f), 1, 1));
+            _nodes.Add(new Node(2, "Composite", new ImVec2(270, 80), new NodeData(1.0f), new ImVec4(0, 0.8f, 0.4f, 1.0f), 2, 1));
+            _nodes.Add(new Node(3, "OutputNode", new ImVec2(470, 80), new NodeData(1.0f), new ImVec4(0, 0.8f, 0.4f, 1.0f), 1, 1));
             _links.Add(new NodeLink(0, 0, 2, 0));
             _links.Add(new NodeLink(1, 0, 2, 1));
+            _links.Add(new NodeLink(2, 0, 3, 0));
         }
 
         protected override void DrawWindowElements()
@@ -123,7 +125,7 @@ namespace ImGui.NET.SampleProgram
 
                 if (Im.MenuItem("Add"))
                 {
-                    _nodes.Add(new Node(_nodes.Count, "New node", scenePos, 0.5f, new ImVec4(100.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 255.0f / 255.0f), 2, 2));
+                    _nodes.Add(new Node(_nodes.Count, "New node", scenePos, new NodeData(0.5f), new ImVec4(100.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 255.0f / 255.0f), 2, 2));
                 }
 
                 Im.EndPopup();
