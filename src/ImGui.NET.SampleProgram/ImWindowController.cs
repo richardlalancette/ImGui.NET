@@ -6,8 +6,8 @@ namespace ImGui.NET.SampleProgram
     public class ImWindowController : AbstractImController
     {
         public readonly string Title;
-        public int Width { get; set; } = 800;
-        public int Height { get; set; } = 600;
+        public int Width { get; set; } = 1920;
+        public int Height { get; set; } = 1080;
         public ImGuiCond SizeCondition { get; set; } = ImGuiCond.FirstUseEver;
         private ImGuiWindowFlags WindowStyle { get; set; }
 

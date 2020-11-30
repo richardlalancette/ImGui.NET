@@ -1,47 +1,117 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Net;
+using System.Numerics;
 using System.Text.Json;
 using ImGuiNET;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using ImVec2 = System.Numerics.Vector2;
 using ImVec3 = System.Numerics.Vector3;
 using ImVec4 = System.Numerics.Vector4;
 using Im = ImGuiNET.ImGui;
 
+// https: //mikecodes.net/2020/05/11/in-app-scripts-with-c-roslyn/
+// https://www.newtonsoft.com/json/help/html/CreateJsonAnonymousObject.htm
+
+/*!
+ JObject rss =
+    new JObject(
+        new JProperty("channel",
+            new JObject(
+                new JProperty("title", "James Newton-King"),
+                new JProperty("link", "http://james.newtonking.com"),
+                new JProperty("description", "James Newton-King's blog."),
+                new JProperty("item",
+                    new JArray(
+                        from p in posts
+                        orderby p.Title
+                        select new JObject(
+                            new JProperty("title", p.Title),
+                            new JProperty("description", p.Description),
+                            new JProperty("link", p.Link),
+                            new JProperty("category",
+                                new JArray(
+                                    from c in p.Categories
+                                    select new JValue(c)))))))));
+*/
 namespace ImGui.NET.SampleProgram
 {
     class NodeData
     {
+        public JObject json = new JObject();
         public float Value = 1.0f;
         public Vector4 color;
 
-        public NodeData()
+        class testObject
         {
+            [JsonProperty]
+            private float value;
         }
 
-        public NodeData(float value)
+        public void AddField<T>(string fieldName, T value)
         {
-            Value = value;
+            JObject fromObject = JObject.FromObject(value);
+            fromObject.AddFirst(new JProperty("Type", value.GetType().Name));
+            json.Add(fieldName, fromObject);
+        }
+
+        public void SetField<T>(string fieldName, T value)
+        {
+            JObject fromObject = JObject.FromObject(value);
+            fromObject.AddFirst(new JProperty("Type", value.GetType().Name));
+            json[fieldName].Replace(fromObject);
         }
     }
 
     class NodeView
     {
-        public void Draw(string Name, int nodeIdx, NodeData data)
+        public void Draw(string name, int nodeIdx, NodeData data)
         {
-            Im.Text(string.Format($"{Name}"));
-            Im.SliderFloat($"##value{nodeIdx}", ref data.Value, 0.0f, 1.0f, "Alpha %.2f");
-            Im.ColorEdit4("##color", ref data.color);
+            Im.Text(string.Format($"{name}"));
+            // Im.SliderFloat($"##value{nodeIdx}", ref data.Value, 0.0f, 1.0f, "Alpha %.2f");
+
+            foreach (KeyValuePair<string, JToken> keyValuePair in data.json)
+            {
+                JToken fieldType = keyValuePair.Value["Type"];
+
+                switch (fieldType?.ToString())
+                {
+                case "Vector4":
+                    Vector4 color = keyValuePair.Value.ToObject<Vector4>();
+                    var newGuid = "##color" + keyValuePair.Key;
+                    Im.ColorEdit4(newGuid, ref color);
+                    Im.SameLine();
+                    Im.Text($"{keyValuePair.Key}");
+                    data.SetField(keyValuePair.Key, color);
+                    break;
+                    case "MagickImage":
+                    Im.Image((IntPtr) 0, Vector2.One * 300.0f);
+                        break;
+                }
+            }
+
+            Im.Text($"{data.json}");
         }
     }
-    
+
     class Node
     {
-        public readonly int Id;
-        public readonly string Name;
-        public Vector2 Pos;
-        public Vector2 Size;
         public NodeData Data = new NodeData();
         public NodeView View = new NodeView();
-        public Vector4 Color;
+
+        public readonly int Id;
+        public readonly string Name;
+
+        public Vector2 Pos
+        {
+            get => Data.json["Pos"].ToObject<Vector2>();
+            set => Data.json["Pos"].Replace(JObject.FromObject(value));
+        }
+
+        public Vector2 Size;
         public int InputsCount;
         public int OutputsCount;
         public bool Selected;
@@ -51,18 +121,30 @@ namespace ImGui.NET.SampleProgram
 
         public Node(int id, string name, Vector2 pos, NodeData data, Vector4 color, int inputsCount, int outputsCount)
         {
+            Data = data;
+            // Data.json.PropertyChanged += NodePropertyChanged;
+            // Data.json.CollectionChanged += NodeCollectionChanged;
             Id = id;
             Name = name;
-            Pos = pos;
+            // Data.AddField("Name", name);
+            Data.AddField("Pos", pos);
             Size = new Vector2();
-            Data = data;
-            Color = color;
             InputsCount = inputsCount;
             OutputsCount = outputsCount;
             Selected = false;
             Hovered = false;
             Down = false;
             Dragged = false;
+        }
+
+        private void NodeCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            Console.WriteLine($"Property Changed{sender?.ToString()}: {e.ToString()}");
+        }
+
+        private void NodePropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            Console.WriteLine($"Property Changed{sender?.ToString()}: {e.ToString()}");
         }
 
         public Vector2 GetInputSlotPos(int slotNo)

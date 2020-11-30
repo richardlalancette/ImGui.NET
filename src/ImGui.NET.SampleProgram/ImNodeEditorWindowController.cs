@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Drawing;
 using System.Numerics;
+using ImageMagick;
 using ImGuiNET;
+using Newtonsoft.Json;
 using ImVec2 = System.Numerics.Vector2;
 using ImVec3 = System.Numerics.Vector3;
 using ImVec4 = System.Numerics.Vector4;
@@ -23,19 +26,30 @@ namespace ImGui.NET.SampleProgram
 {
     public class ImNodeEditorWindowController : ImWindowController
     {
+        [JsonProperty]
         private List<Node> _nodes = new List<Node>();
+
+        [JsonProperty]
         private List<NodeLink> _links = new List<NodeLink>();
+
+        [JsonProperty]
         private bool _showGrid = true;
+
+        [JsonProperty]
         private bool _openContextMenu;
 
+        [JsonProperty]
         private ImVec2 _panningPosition = ImVec2.Zero;
 
         public ImNodeEditorWindowController(string title) : base(title)
         {
-            _nodes.Add(new Node(0, "MagickImage", new ImVec2(40, 50), new NodeData(0.5f), new ImVec4(1.0f, 0.4f, 0.4f, 1.0f), 1, 1));
-            _nodes.Add(new Node(1, "MagickImage", new ImVec2(40, 150), new NodeData(0.42f), new ImVec4(0.8f, 0.4f, 0.8f, 1.0f), 1, 1));
-            _nodes.Add(new Node(2, "Composite", new ImVec2(270, 80), new NodeData(1.0f), new ImVec4(0, 0.8f, 0.4f, 1.0f), 2, 1));
-            _nodes.Add(new Node(3, "OutputNode", new ImVec2(470, 80), new NodeData(1.0f), new ImVec4(0, 0.8f, 0.4f, 1.0f), 1, 1));
+            var firstNodeData = new NodeData();
+            firstNodeData.AddField("Vector4", new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+            firstNodeData.AddField("MagickImage", new MagickImage(MagickColors.White, 10, 10));
+            _nodes.Add(new Node(0, "MagickImage", new ImVec2(75, 40), firstNodeData, new ImVec4(1.0f, 0.4f, 0.4f, 1.0f), 1, 1));
+            _nodes.Add(new Node(1, "MagickImage", new ImVec2(75, 555), new NodeData(), new ImVec4(0.8f, 0.4f, 0.8f, 1.0f), 1, 1));
+            _nodes.Add(new Node(2, "Composite", new ImVec2(420, 300), new NodeData(), new ImVec4(0, 0.8f, 0.4f, 1.0f), 2, 1));
+            _nodes.Add(new Node(3, "Output", new ImVec2(700, 300), new NodeData(), new ImVec4(0, 0.8f, 0.4f, 1.0f), 1, 0));
             _links.Add(new NodeLink(0, 0, 2, 0));
             _links.Add(new NodeLink(1, 0, 2, 1));
             _links.Add(new NodeLink(2, 0, 3, 0));
@@ -125,7 +139,7 @@ namespace ImGui.NET.SampleProgram
 
                 if (Im.MenuItem("Add"))
                 {
-                    _nodes.Add(new Node(_nodes.Count, "New node", scenePos, new NodeData(0.5f), new ImVec4(100.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 255.0f / 255.0f), 2, 2));
+                    _nodes.Add(new Node(_nodes.Count, "New node", scenePos, new NodeData(), new ImVec4(100.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 255.0f / 255.0f), 2, 2));
                 }
 
                 Im.EndPopup();

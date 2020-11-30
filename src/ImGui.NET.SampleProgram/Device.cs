@@ -18,7 +18,7 @@ namespace ImGui.NET.SampleProgram
         public void Create()
         {
             VeldridStartup.CreateWindowAndGraphicsDevice(
-                new WindowCreateInfo(50, 50, 1280, 720, WindowState.Normal, "ImGui.NET Sample Program"),
+                new WindowCreateInfo(50, 50, 1920, 1080, WindowState.Normal, "ImGui.NET Sample Program"),
                 new GraphicsDeviceOptions(true, null, true),
                 out _window,
                 out _gd);
