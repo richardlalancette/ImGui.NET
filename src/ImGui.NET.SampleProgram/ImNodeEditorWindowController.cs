@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
 using System.Numerics;
-using ImageMagick;
 using ImGuiNET;
 using Newtonsoft.Json;
 using ImVec2 = System.Numerics.Vector2;
@@ -36,17 +34,19 @@ namespace ImGui.NET.SampleProgram
         private bool _showGrid = true;
 
         [JsonProperty]
-        private bool _openContextMenu;
+        private bool _openEditorContextMenu;
+
+        [JsonProperty]
+        private bool _openNodeContextMenu;
 
         [JsonProperty]
         private ImVec2 _panningPosition = ImVec2.Zero;
 
         public ImNodeEditorWindowController(string title) : base(title)
         {
-            var firstNodeData = new NodeData();
-            firstNodeData.AddField("Vector4", new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-            firstNodeData.AddField("MagickImage", new MagickImage(MagickColors.White, 10, 10));
-            _nodes.Add(new Node(0, "MagickImage", new ImVec2(75, 40), firstNodeData, new ImVec4(1.0f, 0.4f, 0.4f, 1.0f), 1, 1));
+            NodeFactory.RegisterType<ImageNode>();
+            NodeFactory.RegisterType<CompositeOperationNode>();
+            _nodes.Add(new Node(0, "MagickImage", new ImVec2(75, 40), new NodeData(), new ImVec4(1.0f, 0.4f, 0.4f, 1.0f), 1, 1));
             _nodes.Add(new Node(1, "MagickImage", new ImVec2(75, 555), new NodeData(), new ImVec4(0.8f, 0.4f, 0.8f, 1.0f), 1, 1));
             _nodes.Add(new Node(2, "Composite", new ImVec2(420, 300), new NodeData(), new ImVec4(0, 0.8f, 0.4f, 1.0f), 2, 1));
             _nodes.Add(new Node(3, "Output", new ImVec2(700, 300), new NodeData(), new ImVec4(0, 0.8f, 0.4f, 1.0f), 1, 0));
@@ -88,7 +88,8 @@ namespace ImGui.NET.SampleProgram
                 DisplayNodeLinks(panningOffset, ref drawList);
                 DisplayNodes(panningOffset, ref drawList);
                 drawList.ChannelsMerge();
-                DrawContextMenu(panningOffset);
+                DrawEditorContextMenu(panningOffset);
+                DrawNodeContextMenu(panningOffset);
                 HandlePanning();
 
                 Im.EndChild();
@@ -114,33 +115,39 @@ namespace ImGui.NET.SampleProgram
             }
         }
 
-        private void DrawContextMenu(Vector2 panningOffset)
+        private void DrawEditorContextMenu(Vector2 panningOffset)
         {
-            _openContextMenu = false;
+            _openEditorContextMenu = false;
 
             if (Im.IsMouseReleased(ImGuiMouseButton.Right))
             {
-                if (Im.IsWindowHovered(ImGuiHoveredFlags.AllowWhenBlockedByPopup) || !Im.IsAnyItemHovered())
+                if (Im.IsWindowHovered(ImGuiHoveredFlags.RootWindow) || !Im.IsAnyItemHovered())
                 {
-                    _openContextMenu = true;
+                    _openEditorContextMenu = true;
                 }
             }
 
-            if (_openContextMenu)
+            if (_openEditorContextMenu)
             {
-                Im.OpenPopup("context_menu");
+                Im.OpenPopup("editor_context_menu");
             }
 
             Im.PushStyleVar(ImGuiStyleVar.WindowPadding, StyleSheet.NodeWindowPadding);
 
-            if (Im.BeginPopup("context_menu"))
+            if (Im.BeginPopup("editor_context_menu"))
             {
                 ImVec2 scenePos = Im.GetMousePosOnOpeningCurrentPopup() - panningOffset;
 
-                if (Im.MenuItem("Add"))
+                var nodeTypes = NodeFactory.TypeList();
+
+                foreach (var type in nodeTypes)
                 {
-                    _nodes.Add(new Node(_nodes.Count, "New node", scenePos, new NodeData(), new ImVec4(100.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 255.0f / 255.0f), 2, 2));
+                    if (Im.MenuItem($"Add {type.Name}"))
+                    {
+                        _nodes.Add(new Node(_nodes.Count, "New node", scenePos, new NodeData(), new ImVec4(100.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 255.0f / 255.0f), 2, 2));
+                    }
                 }
+                
 
                 Im.EndPopup();
             }
@@ -148,13 +155,46 @@ namespace ImGui.NET.SampleProgram
             Im.PopStyleVar();
         }
 
+        private void DrawNodeContextMenu(Vector2 panningOffset)
+        {
+            _openNodeContextMenu = false;
+
+            if (Im.IsMouseReleased(ImGuiMouseButton.Right))
+            {
+                if (Im.IsWindowHovered(ImGuiHoveredFlags.ChildWindows) && Im.IsAnyItemHovered())
+                {
+                    _openNodeContextMenu = true;
+                }
+            }
+
+            if (_openNodeContextMenu)
+            {
+                Im.OpenPopup("node_context_menu");
+            }
+
+            Im.PushStyleVar(ImGuiStyleVar.WindowPadding, StyleSheet.NodeWindowPadding);
+
+            if (Im.BeginPopup("node_context_menu"))
+            {
+                ImVec2 scenePos = Im.GetMousePosOnOpeningCurrentPopup() - panningOffset;
+
+                if (Im.MenuItem("Node ContextMenu"))
+                {
+                }
+
+                Im.EndPopup();
+            }
+
+            Im.PopStyleVar();
+        }
+        
         private void DisplayNodes(Vector2 panningOffset, ref ImDrawListPtr drawList)
         {
             for (int nodeIdx = 0; nodeIdx < _nodes.Count; nodeIdx++)
             {
                 var node = _nodes[nodeIdx];
 
-                node.Draw(panningOffset, drawList, nodeIdx, ref _openContextMenu);
+                node.Draw(panningOffset, drawList, nodeIdx, ref _openEditorContextMenu);
             }
         }
 
@@ -199,40 +239,85 @@ namespace ImGui.NET.SampleProgram
             Im.Text("Nodes");
             Im.Separator();
 
+            if (Im.IsMouseReleased(ImGuiMouseButton.Left))
+            {
+                foreach (var node in _nodes)
+                {
+                    node.LeftMouseButtonDown = false;
+                }
+            }
+
             foreach (var node in _nodes)
             {
                 Im.PushID(node.Id);
 
                 if (node.Hovered)
+                {
                     Im.PushStyleColor(ImGuiCol.Text, StyleSheet.White);
+                }
                 else
+                {
                     Im.PushStyleColor(ImGuiCol.Text, StyleSheet.LightGrey);
+                }
 
                 Im.Selectable(node.Name, node.Selected);
 
                 if (node.Hovered)
+                {
                     Im.PopStyleColor();
+                }
 
-                if (Im.IsItemHovered())
+                if (Im.IsItemHovered(ImGuiHoveredFlags.RectOnly))
                 {
                     node.Hovered = true;
 
                     if (Im.IsMouseDown(ImGuiMouseButton.Left))
-                        node.Down = true;
+                    {
+                        node.LeftMouseButtonDown = true;
+                    }
 
-                    if (Im.IsMouseReleased(ImGuiMouseButton.Left) && node.Down)
+                    if (Im.IsMouseReleased(ImGuiMouseButton.Left) && node.LeftMouseButtonDown)
+                    {
                         node.Selected = !node.Selected;
+                        node.LeftMouseButtonDown = false;
+                    }
 
-                    if (Im.IsMouseDragging(ImGuiMouseButton.Left) && node.Down)
-                        node.Down = false;
+                    if (Im.IsMouseDragging(ImGuiMouseButton.Left) && node.LeftMouseButtonDown)
+                    {
+                        node.LeftMouseButtonDown = false;
+                    }
 
-                    _openContextMenu |= Im.IsMouseReleased(ImGuiMouseButton.Right);
+                    if (Im.IsMouseReleased(ImGuiMouseButton.Right))
+                    {
+                        _openNodeContextMenu = true;
+                    }
                 }
 
                 Im.PopID();
             }
 
             Im.EndChild();
+        }
+    }
+
+    public class CompositeOperationNode : Node
+    {
+        public CompositeOperationNode(int id, string name, Vector2 pos, NodeData data, Vector4 backgroundColor, int inputsCount, int outputsCount) : base(id, name, pos, data, backgroundColor, inputsCount, outputsCount)
+        {
+        }
+    }
+
+    public class ImageNode : Node
+    {
+        public ImageNode(int id, string name, Vector2 pos, NodeData data, Vector4 backgroundColor, int inputsCount, int outputsCount) : base(id, name, pos, data, backgroundColor, inputsCount, outputsCount)
+        {
+        }
+    }
+
+    public class DrawableNode : Node
+    {
+        public DrawableNode(int id, string name, Vector2 pos, NodeData data, Vector4 backgroundColor, int inputsCount, int outputsCount) : base(id, name, pos, data, backgroundColor, inputsCount, outputsCount)
+        {
         }
     }
 }

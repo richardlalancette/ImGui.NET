@@ -31,4 +31,9 @@
     <Content Include="$(RepositoryRootDirectory)/deps/cimgui/linux-x64/cimgui.so" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="NodeData.cs" />
+    <Compile Remove="NodeView.cs" />
+  </ItemGroup>
+
 </Project>

@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Net;
+﻿using System.Collections.Generic;
 using System.Numerics;
-using System.Text.Json;
 using ImGuiNET;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ImVec2 = System.Numerics.Vector2;
 using ImVec3 = System.Numerics.Vector3;
@@ -15,89 +9,53 @@ using Im = ImGuiNET.ImGui;
 
 // https: //mikecodes.net/2020/05/11/in-app-scripts-with-c-roslyn/
 // https://www.newtonsoft.com/json/help/html/CreateJsonAnonymousObject.htm
-
-/*!
- JObject rss =
-    new JObject(
-        new JProperty("channel",
-            new JObject(
-                new JProperty("title", "James Newton-King"),
-                new JProperty("link", "http://james.newtonking.com"),
-                new JProperty("description", "James Newton-King's blog."),
-                new JProperty("item",
-                    new JArray(
-                        from p in posts
-                        orderby p.Title
-                        select new JObject(
-                            new JProperty("title", p.Title),
-                            new JProperty("description", p.Description),
-                            new JProperty("link", p.Link),
-                            new JProperty("category",
-                                new JArray(
-                                    from c in p.Categories
-                                    select new JValue(c)))))))));
-*/
 namespace ImGui.NET.SampleProgram
 {
-    class NodeData
+    public class NodeData
     {
-        public JObject json = new JObject();
-        public float Value = 1.0f;
-        public Vector4 color;
-
-        class testObject
-        {
-            [JsonProperty]
-            private float value;
-        }
+        public JObject JsonData { get; set; } = new JObject();
 
         public void AddField<T>(string fieldName, T value)
         {
             JObject fromObject = JObject.FromObject(value);
             fromObject.AddFirst(new JProperty("Type", value.GetType().Name));
-            json.Add(fieldName, fromObject);
+            JsonData.Add(fieldName, fromObject);
         }
 
         public void SetField<T>(string fieldName, T value)
         {
             JObject fromObject = JObject.FromObject(value);
             fromObject.AddFirst(new JProperty("Type", value.GetType().Name));
-            json[fieldName].Replace(fromObject);
+            JsonData[fieldName].Replace(fromObject);
         }
     }
 
-    class NodeView
+    public class NodeView
     {
-        public void Draw(string name, int nodeIdx, NodeData data)
+        public void Draw(string name, NodeData data)
         {
             Im.Text(string.Format($"{name}"));
-            // Im.SliderFloat($"##value{nodeIdx}", ref data.Value, 0.0f, 1.0f, "Alpha %.2f");
 
-            foreach (KeyValuePair<string, JToken> keyValuePair in data.json)
+            foreach (KeyValuePair<string, JToken> keyValuePair in data.JsonData)
             {
                 JToken fieldType = keyValuePair.Value["Type"];
 
                 switch (fieldType?.ToString())
                 {
-                case "Vector4":
-                    Vector4 color = keyValuePair.Value.ToObject<Vector4>();
-                    var newGuid = "##color" + keyValuePair.Key;
-                    Im.ColorEdit4(newGuid, ref color);
-                    Im.SameLine();
-                    Im.Text($"{keyValuePair.Key}");
-                    data.SetField(keyValuePair.Key, color);
-                    break;
+                    case "Vector4":
+                        Vector4Component.Draw(keyValuePair, ref data);
+                        break;
                     case "MagickImage":
-                    Im.Image((IntPtr) 0, Vector2.One * 300.0f);
+                        MagickImageComponent.Draw(keyValuePair, ref data);
                         break;
                 }
             }
 
-            Im.Text($"{data.json}");
+            // Im.Text($"{data.json}");
         }
     }
 
-    class Node
+    public class Node
     {
         public NodeData Data = new NodeData();
         public NodeView View = new NodeView();
@@ -107,8 +65,8 @@ namespace ImGui.NET.SampleProgram
 
         public Vector2 Pos
         {
-            get => Data.json["Pos"].ToObject<Vector2>();
-            set => Data.json["Pos"].Replace(JObject.FromObject(value));
+            get => Data.JsonData["Pos"].ToObject<Vector2>();
+            set => Data.JsonData["Pos"].Replace(JObject.FromObject(value));
         }
 
         public Vector2 Size;
@@ -116,36 +74,38 @@ namespace ImGui.NET.SampleProgram
         public int OutputsCount;
         public bool Selected;
         public bool Hovered;
-        public bool Down;
+        public bool LeftMouseButtonDown;
         public bool Dragged;
 
-        public Node(int id, string name, Vector2 pos, NodeData data, Vector4 color, int inputsCount, int outputsCount)
+        public Node(int id, string name, Vector2 pos, NodeData data, Vector4 backgroundColor, int inputsCount, int outputsCount)
         {
             Data = data;
-            // Data.json.PropertyChanged += NodePropertyChanged;
-            // Data.json.CollectionChanged += NodeCollectionChanged;
+            Data.AddField("Pos", pos);
+
+            // Todo convert these as fields eventually.
             Id = id;
             Name = name;
-            // Data.AddField("Name", name);
-            Data.AddField("Pos", pos);
             Size = new Vector2();
             InputsCount = inputsCount;
             OutputsCount = outputsCount;
             Selected = false;
             Hovered = false;
-            Down = false;
+            LeftMouseButtonDown = false;
             Dragged = false;
+
+            // Data.json.PropertyChanged += NodePropertyChanged;
+            // Data.json.CollectionChanged += NodeCollectionChanged;
         }
 
-        private void NodeCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-        {
-            Console.WriteLine($"Property Changed{sender?.ToString()}: {e.ToString()}");
-        }
-
-        private void NodePropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            Console.WriteLine($"Property Changed{sender?.ToString()}: {e.ToString()}");
-        }
+        // private void NodeCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        // {
+        //     Console.WriteLine($"Property Changed{sender?.ToString()}: {e.ToString()}");
+        // }
+        //
+        // private void NodePropertyChanged(object? sender, PropertyChangedEventArgs e)
+        // {
+        //     Console.WriteLine($"Property Changed{sender?.ToString()}: {e.ToString()}");
+        // }
 
         public Vector2 GetInputSlotPos(int slotNo)
         {
@@ -169,7 +129,7 @@ namespace ImGui.NET.SampleProgram
             Im.SetCursorScreenPos(nodeRectMin + StyleSheet.NodeWindowPadding);
 
             Im.BeginGroup();
-            View.Draw(Name, nodeIdx, Data);
+            View.Draw(Name, Data);
             Im.EndGroup();
 
             // Save the size of what we have emitted and whether any of the widgets are being used
@@ -193,12 +153,12 @@ namespace ImGui.NET.SampleProgram
 
                 if (Im.IsMouseDown(ImGuiMouseButton.Left))
                 {
-                    Down = true;
+                    LeftMouseButtonDown = true;
                 }
 
-                if (Im.IsMouseReleased(ImGuiMouseButton.Left) && Down)
+                if (Im.IsMouseReleased(ImGuiMouseButton.Left) && LeftMouseButtonDown)
                 {
-                    Down = false;
+                    LeftMouseButtonDown = false;
                     Selected = !Selected;
                     Dragged = false;
                 }
@@ -208,8 +168,8 @@ namespace ImGui.NET.SampleProgram
                     Dragged = false;
                 }
 
-                if (Im.IsMouseDragging(ImGuiMouseButton.Left) && Down)
-                    Down = false;
+                if (Im.IsMouseDragging(ImGuiMouseButton.Left) && LeftMouseButtonDown)
+                    LeftMouseButtonDown = false;
 
                 openContextMenu |= Im.IsMouseReleased(ImGuiMouseButton.Right);
             }
