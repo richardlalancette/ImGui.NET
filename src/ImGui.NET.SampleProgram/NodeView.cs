@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Numerics;
 using Newtonsoft.Json;
+using Im = ImGuiNET.ImGui;
 
 namespace ImGui.NET.SampleProgram
 {
@@ -10,7 +11,9 @@ namespace ImGui.NET.SampleProgram
         public void Draw(string name, Node node)
         {
             NodeData data = node.Data;
-            ImGuiNET.ImGui.Text(string.Format($"{name}"));
+            Im.Text(string.Format($"{name}"));
+            Im.Spacing();
+            Im.Spacing();
 
             foreach (KeyValuePair<string, dynamic> keyValuePair in data)
             {

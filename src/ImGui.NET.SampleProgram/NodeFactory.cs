@@ -1,20 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace ImGui.NET.SampleProgram
 {
     class NodeFactory
     {
-        private static List<Type> _types = new List<Type>();
-        
-        public static void RegisterType<T>()
+        public static Node CreateInstance(Type type, Vector2 scenePos, int index)
         {
-            _types.Add(typeof(T));            
+            Node instance = (Node) Activator.CreateInstance(type, index, "New node", scenePos, new NodeData(), 2, 2);
+            
+            return instance;
         }
         
         public static IEnumerable<Type> TypeList()
         {
-            return _types;
+            IEnumerable<Type> nodeTypes = typeof(Node)
+                .Assembly.GetTypes()
+                .Where(t => t.IsSubclassOf(typeof(Node)) && !t.IsAbstract)
+                .Select(t => t);
+                
+            return nodeTypes;
         }
     }
 }

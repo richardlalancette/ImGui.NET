@@ -34,7 +34,11 @@ namespace ImGui.NET.SampleProgram
         public bool LeftMouseButtonDown;
         public bool Dragged;
 
-        public Node(int id, string name, Vector2 pos, NodeData data, Vector4 backgroundColor, int inputsCount, int outputsCount)
+        public Node()
+        {
+        }
+        
+        public Node(int id, string name, Vector2 pos, NodeData data, int inputsCount, int outputsCount)
         {
             Data = data;
 
@@ -87,18 +91,18 @@ namespace ImGui.NET.SampleProgram
                 drawList.AddCircleFilled(panningOffset + GetInputSlotPos(slotIdx), StyleSheet.NodeSlotRadius, 0xffffffff);
                 drawList.AddCircleFilled(panningOffset + GetInputSlotPos(slotIdx), StyleSheet.NodeSlotRadius / 2, 0xff777777);
 
-                var c = Im.GetCursorPos();
-                Im.SetCursorPos(panningOffset + GetInputSlotPos(slotIdx));
-                Im.Button("slotidx", new Vector2(StyleSheet.NodeSlotRadius * 2, StyleSheet.NodeSlotRadius * 2));
-
-                if (Im.IsItemHovered())
-                {
-                    Im.BeginTooltip();
-                    Im.Text("Hi");
-                    Im.EndTooltip();
-                }
-
-                Im.SetCursorPos(c);
+                // var c = Im.GetCursorPos();
+                // Im.SetCursorPos(panningOffset + GetInputSlotPos(slotIdx));
+                // Im.Button("slotidx", new Vector2(StyleSheet.NodeSlotRadius * 2, StyleSheet.NodeSlotRadius * 2));
+                //
+                // if (Im.IsItemHovered())
+                // {
+                //     Im.BeginTooltip();
+                //     Im.Text("Hi");
+                //     Im.EndTooltip();
+                // }
+                //
+                // Im.SetCursorPos(c);
             }
 
             for (int slotIdx = 0; slotIdx < OutputsCount; slotIdx++)

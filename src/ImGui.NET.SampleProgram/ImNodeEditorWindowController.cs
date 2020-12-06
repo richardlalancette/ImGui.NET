@@ -1,11 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using ImGuiNET;
 using Newtonsoft.Json;
 using ImVec2 = System.Numerics.Vector2;
 using ImVec3 = System.Numerics.Vector3;
-using ImVec4 = System.Numerics.Vector4;
 using Im = ImGuiNET.ImGui;
 
 // Currently using https://github.com/ocornut/imgui/issues/306#issuecomment-134657997
@@ -45,21 +47,12 @@ namespace ImGui.NET.SampleProgram
 
         public ImNodeEditorWindowController(string title) : base(title)
         {
-            NodeFactory.RegisterType<ImageNode>();
-            NodeFactory.RegisterType<CompositeOperationNode>();
-            var firstNodeData = new NodeData();
-            firstNodeData.Add("Color", Color.Salmon);
-            firstNodeData.Add("Color2", Color.Red);
-            firstNodeData.Add("Color3", Color.Blue);
-            firstNodeData.Add("v2", new Vector2());
-            firstNodeData.Add("v3", new Vector3());
-            firstNodeData.Add("v4", new Vector4());
-            var firstNode = new Node(0, "MagickImage", new ImVec2(75, 40), firstNodeData, new ImVec4(1.0f, 0.4f, 0.4f, 1.0f), 1, 1);
+            var firstNode = new TestNode(0, "MagickImage", new ImVec2(75, 40), new NodeData(), 1, 1);
             
             _nodes.Add(firstNode);
-            _nodes.Add(new Node(1, "MagickImage", new ImVec2(75, 555), new NodeData(), new ImVec4(0.8f, 0.4f, 0.8f, 1.0f), 1, 1));
-            _nodes.Add(new Node(2, "Composite", new ImVec2(420, 300), new NodeData(), new ImVec4(0, 0.8f, 0.4f, 1.0f), 2, 1));
-            _nodes.Add(new Node(3, "Output", new ImVec2(700, 300), new NodeData(), new ImVec4(0, 0.8f, 0.4f, 1.0f), 1, 0));
+            _nodes.Add(new Node(1, "MagickImage", new ImVec2(75, 555), new NodeData(), 1, 1));
+            _nodes.Add(new Node(2, "Composite", new ImVec2(420, 300), new NodeData(), 2, 1));
+            _nodes.Add(new Node(3, "Output", new ImVec2(700, 300), new NodeData(), 1, 0));
             _links.Add(new NodeLink(0, 0, 2, 0));
             _links.Add(new NodeLink(1, 0, 2, 1));
             _links.Add(new NodeLink(2, 0, 3, 0));
@@ -155,14 +148,15 @@ namespace ImGui.NET.SampleProgram
 
                 var nodeTypes = NodeFactory.TypeList();
 
-                foreach (var type in nodeTypes)
+                foreach (Type type in nodeTypes)
                 {
                     if (Im.MenuItem($"Add {type.Name}"))
                     {
-                        _nodes.Add(new Node(_nodes.Count, "New node", scenePos, new NodeData(), new ImVec4(100.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 255.0f / 255.0f), 2, 2));
+                        var nodeInstance = NodeFactory.CreateInstance(type, scenePos, _nodes.Count);
+
+                        _nodes.Add(nodeInstance);
                     }
                 }
-                
 
                 Im.EndPopup();
             }
@@ -317,22 +311,42 @@ namespace ImGui.NET.SampleProgram
 
     public class CompositeOperationNode : Node
     {
-        public CompositeOperationNode(int id, string name, Vector2 pos, NodeData data, Vector4 backgroundColor, int inputsCount, int outputsCount) : base(id, name, pos, data, backgroundColor, inputsCount, outputsCount)
+        public CompositeOperationNode() : base()
         {
+        }
+
+        public CompositeOperationNode(int id, string name, Vector2 pos, NodeData data, int inputsCount, int outputsCount) : base(id, name, pos, data, inputsCount, outputsCount)
+        {
+            data.Add("Tint", Color.Salmon);
         }
     }
 
     public class ImageNode : Node
     {
-        public ImageNode(int id, string name, Vector2 pos, NodeData data, Vector4 backgroundColor, int inputsCount, int outputsCount) : base(id, name, pos, data, backgroundColor, inputsCount, outputsCount)
+        public ImageNode() : base()
         {
+        }
+
+        public ImageNode(int id, string name, Vector2 pos, NodeData data, int inputsCount, int outputsCount) : base(id, name, pos, data, inputsCount, outputsCount)
+        {
+            data.Add("Color", Color.Salmon);
         }
     }
 
-    public class DrawableNode : Node
+    public class TestNode : Node
     {
-        public DrawableNode(int id, string name, Vector2 pos, NodeData data, Vector4 backgroundColor, int inputsCount, int outputsCount) : base(id, name, pos, data, backgroundColor, inputsCount, outputsCount)
+        public TestNode() : base()
         {
+        }
+        
+        public TestNode(int id, string name, Vector2 pos, NodeData data, int inputsCount, int outputsCount) : base(id, name, pos, data, inputsCount, outputsCount)
+        {
+            data.Add("Color", Color.Salmon);
+            data.Add("Color2", Color.Red);
+            data.Add("Color3", Color.FromArgb(202, 255, 50));
+            data.Add("v2", new Vector2());
+            data.Add("v3", new Vector3());
+            data.Add("v4", new Vector4());
         }
     }
 }
