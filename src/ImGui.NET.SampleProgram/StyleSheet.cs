@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Drawing;
 using System.Numerics;
 
 namespace ImGui.NET.SampleProgram
@@ -28,11 +29,12 @@ namespace ImGui.NET.SampleProgram
         public const int NodeListDefaultWidth = 200;
         public const uint GreyColor = 0xFF2B2B2B;
         public const uint LightGrey = 0xFFC0C0C0;
+        public const uint Red = 0xFF0000FF;
         public const uint White = 0xFFFFFFFF;
         public const uint LinkColor = 0xFF111111;
         public const uint LinkBorderColor = 0xFFCCCCCC;
 
-        public Dictionary<string, Style> Styles  { get; } = new Dictionary<string, Style>();
+        public Dictionary<string, Style> Styles { get; } = new Dictionary<string, Style>();
 
         public StyleSheet()
         {
@@ -60,5 +62,13 @@ namespace ImGui.NET.SampleProgram
         }
 
 
+        public static uint ImColor(Color color)
+        {
+            byte r = (byte) (color.R);
+            byte g = (byte) (color.G);
+            byte b = (byte) (color.B);
+            byte a = color.A;
+            return (uint) (a << 24 | b << 16 | g << 8 | r);
+        }
     }
 }

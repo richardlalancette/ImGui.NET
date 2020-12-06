@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Drawing;
 using System.Numerics;
 using ImGuiNET;
 using Newtonsoft.Json;
@@ -46,13 +47,29 @@ namespace ImGui.NET.SampleProgram
         {
             NodeFactory.RegisterType<ImageNode>();
             NodeFactory.RegisterType<CompositeOperationNode>();
-            _nodes.Add(new Node(0, "MagickImage", new ImVec2(75, 40), new NodeData(), new ImVec4(1.0f, 0.4f, 0.4f, 1.0f), 1, 1));
+            var firstNodeData = new NodeData();
+            firstNodeData.Add("Color", Color.Salmon);
+            firstNodeData.Add("Color2", Color.Red);
+            firstNodeData.Add("Color3", Color.Blue);
+            firstNodeData.Add("v2", new Vector2());
+            firstNodeData.Add("v3", new Vector3());
+            firstNodeData.Add("v4", new Vector4());
+            var firstNode = new Node(0, "MagickImage", new ImVec2(75, 40), firstNodeData, new ImVec4(1.0f, 0.4f, 0.4f, 1.0f), 1, 1);
+            
+            _nodes.Add(firstNode);
             _nodes.Add(new Node(1, "MagickImage", new ImVec2(75, 555), new NodeData(), new ImVec4(0.8f, 0.4f, 0.8f, 1.0f), 1, 1));
             _nodes.Add(new Node(2, "Composite", new ImVec2(420, 300), new NodeData(), new ImVec4(0, 0.8f, 0.4f, 1.0f), 2, 1));
             _nodes.Add(new Node(3, "Output", new ImVec2(700, 300), new NodeData(), new ImVec4(0, 0.8f, 0.4f, 1.0f), 1, 0));
             _links.Add(new NodeLink(0, 0, 2, 0));
             _links.Add(new NodeLink(1, 0, 2, 1));
             _links.Add(new NodeLink(2, 0, 3, 0));
+        }
+
+        public override void Draw()
+        {
+            base.Draw();
+            
+            Im.ShowDemoWindow();
         }
 
         protected override void DrawWindowElements()
@@ -64,9 +81,7 @@ namespace ImGui.NET.SampleProgram
                 node.Hovered = false;
             }
 
-            DrawNodeList();
-            Im.SameLine();
-            DrawEditor();
+            DrawNodeList(); Im.SameLine(); DrawEditor();
         }
 
         private void DrawEditor()
