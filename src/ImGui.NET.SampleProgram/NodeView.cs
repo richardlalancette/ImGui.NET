@@ -13,16 +13,9 @@ namespace ImGui.NET.SampleProgram
             NodeData data = node.Data;
             Im.Text(string.Format($"{name}"));
             Im.Spacing();
-            Im.Spacing();
 
             foreach (KeyValuePair<string, dynamic> keyValuePair in data)
             {
-                // var t = keyValuePair.Value.GetType();
-                // var v = keyValuePair.Value;
-                // var a = keyValuePair.Value.GetType().GetType();
-                // var tname = t.ToString();
-                // bool isColor = keyValuePair.Value is System.Drawing.Color;
-
                 TypeSwitch.Do(
                     keyValuePair.Value,
                     TypeSwitch.Case<Color>(() => { data[keyValuePair.Key] = SystemColorComponent.Draw(keyValuePair, ref data); }),

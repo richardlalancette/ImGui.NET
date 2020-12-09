@@ -47,9 +47,7 @@ namespace ImGui.NET.SampleProgram
 
         public ImNodeEditorWindowController(string title) : base(title)
         {
-            var firstNode = new TestNode(0, "MagickImage", new ImVec2(75, 40), new NodeData(), 1, 1);
-            
-            _nodes.Add(firstNode);
+            _nodes.Add(new TestNode(0, "MagickImage", new ImVec2(75, 40), new NodeData(), 1, 1));
             _nodes.Add(new Node(1, "MagickImage", new ImVec2(75, 555), new NodeData(), 1, 1));
             _nodes.Add(new Node(2, "Composite", new ImVec2(420, 300), new NodeData(), 2, 1));
             _nodes.Add(new Node(3, "Output", new ImVec2(700, 300), new NodeData(), 1, 0));
