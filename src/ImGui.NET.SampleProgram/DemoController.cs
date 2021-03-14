@@ -13,7 +13,9 @@ namespace ImGui.NET.SampleProgram
                 // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway.
                 // Here we just want to make the demo initial state a bit more friendly!
                 ImGuiNET.ImGui.SetNextWindowPos(new Vector2(650, 20), ImGuiCond.FirstUseEver);
-                ImGuiNET.ImGui.ShowDemoWindow(ref Enabled);
+                bool enabled = Enabled;
+                ImGuiNET.ImGui.ShowDemoWindow(ref enabled);
+                Enabled = enabled;
             }
         }
     }

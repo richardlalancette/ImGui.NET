@@ -2,12 +2,13 @@
 {
     public abstract class AbstractImController
     {
-        protected bool Enabled = true;
+        public bool Enabled { get; set; }
         public StyleSheet Styles { get; private set; }
         public abstract void Draw();
 
         protected AbstractImController()
         {
+            Enabled = true;
         }
 
         protected AbstractImController(bool enabled)
