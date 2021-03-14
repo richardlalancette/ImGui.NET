@@ -1,6 +1,6 @@
 ﻿namespace ImGui.NET.SampleProgram
 {
-    class NodeLink
+    public class NodeLink
     {
         public int InputIdx;
         public int InputSlot;

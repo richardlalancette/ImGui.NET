@@ -77,24 +77,24 @@ namespace ImGui.NET.SampleProgram
 
                 DrawNodeContentView();
                 DrawNodeBox(panningOffset, drawList, ref openEditContextMenu);
-                DrawNodeSlots(panningOffset, drawList);
+                DrawNodeConnectors(panningOffset, drawList);
             }
             
             Im.PopID();
             Im.PopItemWidth();
         }
 
-        private void DrawNodeSlots(Vector2 panningOffset, ImDrawListPtr drawList)
+        private void DrawNodeConnectors(Vector2 panningOffset, ImDrawListPtr drawList)
         {
-            for (int slotIdx = 0; slotIdx < InputsCount; slotIdx++)
+            for (int inputConnectorIndex = 0; inputConnectorIndex < InputsCount; inputConnectorIndex++)
             {
-                var connectorPos = panningOffset + GetInputSlotPos(slotIdx);
+                var connectorPos = panningOffset + GetInputSlotPos(inputConnectorIndex);
                 DrawConnector(drawList, connectorPos, StyleSheet.NodeSlotRadius);
             }
 
-            for (int slotIdx = 0; slotIdx < OutputsCount; slotIdx++)
+            for (int outputConnectorIndex = 0; outputConnectorIndex < OutputsCount; outputConnectorIndex++)
             {
-                var connectorPos = panningOffset + GetOutputSlotPos(slotIdx);
+                var connectorPos = panningOffset + GetOutputSlotPos(outputConnectorIndex);
                 DrawConnector(drawList, connectorPos, StyleSheet.NodeSlotRadius);
             }
         }
@@ -102,16 +102,31 @@ namespace ImGui.NET.SampleProgram
         private static void DrawConnector(ImDrawListPtr drawList, Vector2 connectorPosition, float nodeSlotRadius)
         {
             var c = Im.GetCursorScreenPos();
-            var buttonPosition = new Vector2(connectorPosition.X - nodeSlotRadius, connectorPosition.Y - nodeSlotRadius);
-            Im.SetCursorScreenPos(buttonPosition);
+            
+            var centeredButtonPosition = new Vector2(connectorPosition.X - nodeSlotRadius, connectorPosition.Y - nodeSlotRadius);
+            
+            Im.SetCursorScreenPos(centeredButtonPosition);
+            
             Im.InvisibleButton("slotidx", new Vector2(nodeSlotRadius * 2, nodeSlotRadius * 2));
             bool connectorHovered = Im.IsItemHovered();
+            bool connectorActive = Im.IsItemActive();
+            
             Im.SetCursorScreenPos(c);
 
             if (connectorHovered)
             {
-                drawList.AddCircleFilled(connectorPosition, nodeSlotRadius * 1.5f, 0xffffffff);
-                drawList.AddCircleFilled(connectorPosition, nodeSlotRadius * 1.5f / 2.0f, 0xff777777);
+                if (connectorActive)
+                {
+                    bool mouseDragging = Im.IsMouseDragging(ImGuiMouseButton.Left);
+                    
+                    drawList.AddCircleFilled(connectorPosition, nodeSlotRadius * 2.5f, 0xffffffff);
+                    drawList.AddCircleFilled(connectorPosition, nodeSlotRadius * 2.5f / 2.0f, 0xff777777);
+                }
+                else
+                {
+                    drawList.AddCircleFilled(connectorPosition, nodeSlotRadius * 1.5f, 0xffffffff);
+                    drawList.AddCircleFilled(connectorPosition, nodeSlotRadius * 1.5f / 2.0f, 0xff777777);
+                }            
             }
             else
             {

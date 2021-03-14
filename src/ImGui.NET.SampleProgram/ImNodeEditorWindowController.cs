@@ -25,14 +25,21 @@ using Im = ImGuiNET.ImGui;
 
 namespace ImGui.NET.SampleProgram
 {
-    public class ImNodeEditorWindowController : ImWindowController
+    public class Graph
     {
         [JsonProperty]
-        private List<Node> _nodes = new List<Node>();
+        public List<Node> Nodes = new List<Node>();
 
         [JsonProperty]
-        private List<NodeLink> _links = new List<NodeLink>();
+        public List<NodeLink> Links = new List<NodeLink>();
 
+        public Graph()
+        {
+        }
+    }
+
+    public class ImNodeEditorWindowController : ImWindowController
+    {
         [JsonProperty]
         private bool _showGrid = true;
 
@@ -45,15 +52,18 @@ namespace ImGui.NET.SampleProgram
         [JsonProperty]
         private ImVec2 _panningPosition = ImVec2.Zero;
 
+        private readonly Graph _graph;
+
         public ImNodeEditorWindowController(string title) : base(title)
         {
-            _nodes.Add(new TestNode(0, "MagickImage", new ImVec2(75, 40), new NodeData(), 1, 1));
-            _nodes.Add(new Node(1, "MagickImage", new ImVec2(75, 555), new NodeData(), 1, 1));
-            _nodes.Add(new Node(2, "Composite", new ImVec2(420, 300), new NodeData(), 2, 1));
-            _nodes.Add(new Node(3, "Output", new ImVec2(700, 300), new NodeData(), 1, 0));
-            _links.Add(new NodeLink(0, 0, 2, 0));
-            _links.Add(new NodeLink(1, 0, 2, 1));
-            _links.Add(new NodeLink(2, 0, 3, 0));
+            _graph = new Graph();
+            _graph.Nodes.Add(new TestNode(0, "MagickImage", new ImVec2(75, 40), new NodeData(), 1, 1));
+            _graph.Nodes.Add(new Node(1, "MagickImage", new ImVec2(75, 555), new NodeData(), 1, 1));
+            _graph.Nodes.Add(new Node(2, "Composite", new ImVec2(420, 300), new NodeData(), 2, 1));
+            _graph.Nodes.Add(new Node(3, "Output", new ImVec2(700, 300), new NodeData(), 1, 0));
+            _graph.Links.Add(new NodeLink(0, 0, 2, 0));
+            _graph.Links.Add(new NodeLink(1, 0, 2, 1));
+            _graph.Links.Add(new NodeLink(2, 0, 3, 0));
         }
 
         public override void Draw()
@@ -67,7 +77,7 @@ namespace ImGui.NET.SampleProgram
         {
             base.DrawWindowElements();
 
-            foreach (var node in _nodes)
+            foreach (var node in _graph.Nodes)
             {
                 node.Hovered = false;
             }
@@ -150,9 +160,9 @@ namespace ImGui.NET.SampleProgram
                 {
                     if (Im.MenuItem($"Add {type.Name}"))
                     {
-                        var nodeInstance = NodeFactory.CreateInstance(type, scenePos, _nodes.Count);
+                        var nodeInstance = NodeFactory.CreateInstance(type, scenePos, _graph.Nodes.Count);
 
-                        _nodes.Add(nodeInstance);
+                        _graph.Nodes.Add(nodeInstance);
                     }
                 }
 
@@ -197,9 +207,9 @@ namespace ImGui.NET.SampleProgram
         
         private void DisplayNodes(Vector2 panningOffset, ref ImDrawListPtr drawList)
         {
-            for (int nodeIdx = 0; nodeIdx < _nodes.Count; nodeIdx++)
+            for (int nodeIdx = 0; nodeIdx < _graph.Nodes.Count; nodeIdx++)
             {
-                var node = _nodes[nodeIdx];
+                var node = _graph.Nodes[nodeIdx];
 
                 node.Draw(panningOffset, drawList, nodeIdx, ref _openEditorContextMenu);
             }
@@ -209,10 +219,10 @@ namespace ImGui.NET.SampleProgram
         {
             drawList.ChannelsSetCurrent(StyleSheet.BackgroundChannel);
 
-            foreach (var link in _links)
+            foreach (var link in _graph.Links)
             {
-                Node nodeIn = _nodes[link.InputIdx];
-                Node nodeOut = _nodes[link.OutputIdx];
+                Node nodeIn = _graph.Nodes[link.InputIdx];
+                Node nodeOut = _graph.Nodes[link.OutputIdx];
                 ImVec2 p1 = panningOffset + nodeIn.GetOutputSlotPos(link.InputSlot);
                 ImVec2 p2 = panningOffset + nodeOut.GetInputSlotPos(link.OutputSlot);
                 drawList.AddBezierCurve(p1, p1 + new ImVec2(+20, 0), p2 + new ImVec2(-20, 0), p2, StyleSheet.LinkBorderColor, StyleSheet.LinkDefaultThickness);
@@ -248,13 +258,13 @@ namespace ImGui.NET.SampleProgram
 
             if (Im.IsMouseReleased(ImGuiMouseButton.Left))
             {
-                foreach (var node in _nodes)
+                foreach (var node in _graph.Nodes)
                 {
                     node.LeftMouseButtonDown = false;
                 }
             }
 
-            foreach (var node in _nodes)
+            foreach (var node in _graph.Nodes)
             {
                 Im.PushID(node.Id);
 
