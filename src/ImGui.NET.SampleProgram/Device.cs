@@ -66,10 +66,16 @@ namespace ImGui.NET.SampleProgram
             _gd.SubmitCommands(_cl);
             _gd.SwapBuffers(_gd.MainSwapchain);
         }
+        
+        public ResourceFactory ResourceFactory()
+        {
+            return _gd.ResourceFactory;
+        }
 
         public bool Exists()
         {
             return _window.Exists;
         }
+
     };
 }

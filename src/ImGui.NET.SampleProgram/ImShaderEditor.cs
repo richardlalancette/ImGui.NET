@@ -25,7 +25,7 @@ namespace ImGui.NET.SampleProgram
         {
             base.DrawWindowElements();
             
-            Im.InputTextMultiline("GlslShader", ref _glslShader, 65536, new Vector2(400,400));
+            Im.InputTextMultiline("GlslShader", ref _glslShader, 65536, new Vector2(400,200));
         }
     }
 }
