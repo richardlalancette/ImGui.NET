@@ -2,9 +2,8 @@
 using System.Drawing;
 using System.Numerics;
 using ImGuiNET;
-using SharpDX.Direct3D11;
 
-namespace ImGui.NET.SampleProgram
+namespace NodeEditor
 {
     public static class SystemColorComponent
     {

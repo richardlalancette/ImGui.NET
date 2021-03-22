@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using System.Numerics;
-using System.Reflection;
+using ImGui.Extensions;
 using ImGuiNET;
 using Newtonsoft.Json;
 using ImVec2 = System.Numerics.Vector2;
-using ImVec3 = System.Numerics.Vector3;
 using Im = ImGuiNET.ImGui;
 
 // Currently using https://github.com/ocornut/imgui/issues/306#issuecomment-134657997
@@ -23,19 +21,15 @@ using Im = ImGuiNET.ImGui;
 // Helper libraries we could use for layout
 // https://github.com/benzuk/box2d-netstandard
 
-namespace ImGui.NET.SampleProgram
+namespace NodeEditor
 {
     public class Graph
     {
         [JsonProperty]
-        public List<Node> Nodes = new List<Node>();
+        public List<Node> Nodes = new();
 
         [JsonProperty]
-        public List<NodeLink> Links = new List<NodeLink>();
-
-        public Graph()
-        {
-        }
+        public List<NodeLink> Links = new();
     }
 
     public class ImNodeEditorWindowController : ImWindowController
@@ -93,7 +87,7 @@ namespace ImGui.NET.SampleProgram
 
                 Im.PushStyleVar(ImGuiStyleVar.FramePadding, ImVec2.One);
                 Im.PushStyleVar(ImGuiStyleVar.WindowPadding, ImVec2.Zero);
-                Im.PushStyleColor(ImGuiCol.ChildBg, StyleSheet.GreyColor);
+                Im.PushStyleColor(ImGuiCol.ChildBg, Styles.GreyColor);
                 Im.BeginChild("panning_region", ImVec2.Zero, true, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoMove);
                 Im.PopStyleVar(); // WindowPadding
 
@@ -148,7 +142,7 @@ namespace ImGui.NET.SampleProgram
                 Im.OpenPopup("editor_context_menu");
             }
 
-            Im.PushStyleVar(ImGuiStyleVar.WindowPadding, StyleSheet.NodeWindowPadding);
+            Im.PushStyleVar(ImGuiStyleVar.WindowPadding, Styles.NodeWindowPadding);
 
             if (Im.BeginPopup("editor_context_menu"))
             {
@@ -189,7 +183,7 @@ namespace ImGui.NET.SampleProgram
                 Im.OpenPopup("node_context_menu");
             }
 
-            Im.PushStyleVar(ImGuiStyleVar.WindowPadding, StyleSheet.NodeWindowPadding);
+            Im.PushStyleVar(ImGuiStyleVar.WindowPadding, Styles.NodeWindowPadding);
 
             if (Im.BeginPopup("node_context_menu"))
             {
@@ -217,7 +211,7 @@ namespace ImGui.NET.SampleProgram
 
         private void DisplayNodeLinks(Vector2 panningOffset, ref ImDrawListPtr drawList)
         {
-            drawList.ChannelsSetCurrent(StyleSheet.BackgroundChannel);
+            drawList.ChannelsSetCurrent(Styles.BackgroundChannel);
 
             foreach (var link in _graph.Links)
             {
@@ -225,8 +219,8 @@ namespace ImGui.NET.SampleProgram
                 Node nodeOut = _graph.Nodes[link.OutputIdx];
                 ImVec2 p1 = panningOffset + nodeIn.GetOutputSlotPos(link.InputSlot);
                 ImVec2 p2 = panningOffset + nodeOut.GetInputSlotPos(link.OutputSlot);
-                drawList.AddBezierCurve(p1, p1 + new ImVec2(+20, 0), p2 + new ImVec2(-20, 0), p2, StyleSheet.LinkBorderColor, StyleSheet.LinkDefaultThickness);
-                drawList.AddBezierCurve(p1, p1 + new ImVec2(+20, 0), p2 + new ImVec2(-20, 0), p2, StyleSheet.LinkColor, 1);
+                drawList.AddBezierCurve(p1, p1 + new ImVec2(+20, 0), p2 + new ImVec2(-20, 0), p2, Styles.LinkBorderColor, Styles.LinkDefaultThickness);
+                drawList.AddBezierCurve(p1, p1 + new ImVec2(+20, 0), p2 + new ImVec2(-20, 0), p2, Styles.LinkColor, 1);
             }
         }
 
@@ -237,12 +231,12 @@ namespace ImGui.NET.SampleProgram
                 ImVec2 winPos = Im.GetCursorScreenPos();
                 ImVec2 canvasSize = Im.GetWindowSize();
 
-                for (float x = _panningPosition.X % StyleSheet.GridSize; x < canvasSize.X; x += StyleSheet.GridSize)
+                for (float x = _panningPosition.X % Styles.GridSize; x < canvasSize.X; x += Styles.GridSize)
                 {
                     drawList.AddLine(new ImVec2(x, 0.0f) + winPos, new ImVec2(x, canvasSize.Y) + winPos, 0xff555555);
                 }
 
-                for (float y = _panningPosition.Y % StyleSheet.GridSize; y < canvasSize.Y; y += StyleSheet.GridSize)
+                for (float y = _panningPosition.Y % Styles.GridSize; y < canvasSize.Y; y += Styles.GridSize)
                 {
                     drawList.AddLine(new ImVec2(0.0f, y) + winPos, new ImVec2(canvasSize.X, y) + winPos, 0xff555555);
                 }
@@ -252,7 +246,7 @@ namespace ImGui.NET.SampleProgram
         // Draw a list of nodes on the left side
         private void DrawNodeList()
         {
-            Im.BeginChild("node_list", new ImVec2(StyleSheet.NodeListDefaultWidth, 0));
+            Im.BeginChild("node_list", new ImVec2(Styles.NodeListDefaultWidth, 0));
             Im.Text("Nodes");
             Im.Separator();
 
@@ -270,11 +264,11 @@ namespace ImGui.NET.SampleProgram
 
                 if (node.Hovered)
                 {
-                    Im.PushStyleColor(ImGuiCol.Text, StyleSheet.White);
+                    Im.PushStyleColor(ImGuiCol.Text, Styles.White);
                 }
                 else
                 {
-                    Im.PushStyleColor(ImGuiCol.Text, StyleSheet.LightGrey);
+                    Im.PushStyleColor(ImGuiCol.Text, Styles.LightGrey);
                 }
 
                 Im.Selectable(node.Name, node.Selected);
@@ -319,7 +313,7 @@ namespace ImGui.NET.SampleProgram
 
     public class CompositeOperationNode : Node
     {
-        public CompositeOperationNode() : base()
+        public CompositeOperationNode()
         {
         }
 
@@ -331,10 +325,6 @@ namespace ImGui.NET.SampleProgram
 
     public class ImageNode : Node
     {
-        public ImageNode() : base()
-        {
-        }
-
         public ImageNode(int id, string name, Vector2 pos, NodeData data, int inputsCount, int outputsCount) : base(id, name, pos, data, inputsCount, outputsCount)
         {
             data.Add("Color", Color.Salmon);
@@ -343,10 +333,6 @@ namespace ImGui.NET.SampleProgram
 
     public class TestNode : Node
     {
-        public TestNode() : base()
-        {
-        }
-        
         public TestNode(int id, string name, Vector2 pos, NodeData data, int inputsCount, int outputsCount) : base(id, name, pos, data, inputsCount, outputsCount)
         {
             data.Add("Color", Color.Salmon);

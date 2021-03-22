@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
-using Newtonsoft.Json;
+using ImGui.NET.NodeEditor;
 using Im = ImGuiNET.ImGui;
 
-namespace ImGui.NET.SampleProgram
+namespace NodeEditor
 {
     public class NodeView
     {

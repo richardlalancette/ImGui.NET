@@ -1,4 +1,4 @@
-﻿namespace ImGui.NET.SampleProgram
+﻿namespace NodeEditor
 {
     public class NodeLink
     {

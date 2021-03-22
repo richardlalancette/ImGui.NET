@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ImGui.NET\ImGui.NET.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+      <PackageReference Include="Veldrid" Version="4.8.0" />
+      <PackageReference Include="Veldrid.SPIRV" Version="1.0.14" />
+    </ItemGroup>
+
+</Project>

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ImGui.NET.SampleProgram
+namespace NodeEditor
 {
     public class NodeData : Dictionary<string, dynamic>
     {

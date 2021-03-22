@@ -2,9 +2,9 @@
 using ImGuiNET;
 using Im = ImGuiNET.ImGui;
 
-namespace ImGui.NET.SampleProgram
+namespace ImGui.Extensions
 {
-    internal class ImShaderEditor : ImWindowController
+    public class ImShaderEditor : ImWindowController
     {
         private string _glslShader = new("");
         

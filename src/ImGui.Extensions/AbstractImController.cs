@@ -1,4 +1,4 @@
-﻿namespace ImGui.NET.SampleProgram
+﻿namespace ImGui.Extensions
 {
     public abstract class AbstractImController
     {

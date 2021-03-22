@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
 
-namespace ImGui.NET.SampleProgram
+namespace NodeEditor
 {
     public static class Vector4Component
     {

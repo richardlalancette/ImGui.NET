@@ -9,10 +9,12 @@
 
   <ItemGroup>
     <PackageReference Include="Veldrid.SPIRV" Version="1.0.14" />
+    <ProjectReference Include="..\ImGui.Extensions\ImGui.Extensions.csproj" />
     <ProjectReference Include="..\ImGui.NET\ImGui.NET.csproj" />
-    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.22.2.2" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.23.3" />
     <PackageReference Include="Veldrid" Version="4.8.0" />
     <PackageReference Include="Veldrid.StartupUtilities" Version="4.3.3" />
+    <ProjectReference Include="..\NodeEditor\NodeEditor.csproj" />
   </ItemGroup>
 
   <ItemGroup>

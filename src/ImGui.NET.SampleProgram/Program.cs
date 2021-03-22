@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Text;
+using ImGui.Extensions;
+using ImGui.NET.NodeEditor;
 using ImGuiNET;
-using Veldrid;
-using Veldrid.SPIRV;
+using NodeEditor;
 
 // http://shader-playground.timjones.io/#
 namespace ImGui.NET.SampleProgram
@@ -52,17 +52,21 @@ void main()
 			mainStyleSheet.Styles.Add("DarkWindowStyle", new DarkWindowStyle());
 
 			MainWindow.ApplyStyleSheet(mainStyleSheet);
-
+			SecondWindow.ApplyStyleSheet(mainStyleSheet);
+			StylesWindow.ApplyStyleSheet(mainStyleSheet);
+			NodeEditorWindow.ApplyStyleSheet(mainStyleSheet);
+			ShaderEditor.ApplyStyleSheet(mainStyleSheet);
+			
 			Controllers.Add(MainWindow.Title, MainWindow);
 			Controllers.Add(SecondWindow.Title, SecondWindow);
 			Controllers.Add(StylesWindow.Title, StylesWindow);
 			Controllers.Add(NodeEditorWindow.Title, NodeEditorWindow);
 			Controllers.Add(ShaderEditor.Title, ShaderEditor);
 
-			NodeEditorWindow.Enabled = false;
-			MainWindow.Enabled = false;
-			SecondWindow.Enabled = false;
-			StylesWindow.Enabled = false;
+			// NodeEditorWindow.Enabled = false;
+			// MainWindow.Enabled = false;
+			// SecondWindow.Enabled = false;
+			// StylesWindow.Enabled = false;
 		}
 
 		private static void Run()
@@ -84,10 +88,10 @@ void main()
 
 		private static void Draw()
 		{
-			var resourceFactory = Device.ResourceFactory();
-			ShaderDescription vertexShaderDesc = new ShaderDescription(ShaderStages.Vertex, Encoding.UTF8.GetBytes(VertexCode), "main");
-			ShaderDescription fragmentShaderDesc = new ShaderDescription(ShaderStages.Fragment, Encoding.UTF8.GetBytes(FragmentCode), "main");
-			var shaders = resourceFactory.CreateFromSpirv(vertexShaderDesc, fragmentShaderDesc);
+			// var resourceFactory = Device.ResourceFactory();
+			// ShaderDescription vertexShaderDesc = new ShaderDescription(ShaderStages.Vertex, Encoding.UTF8.GetBytes(VertexCode), "main");
+			// ShaderDescription fragmentShaderDesc = new ShaderDescription(ShaderStages.Fragment, Encoding.UTF8.GetBytes(FragmentCode), "main");
+			// var shaders = resourceFactory.CreateFromSpirv(vertexShaderDesc, fragmentShaderDesc);
 
 			// byte[] vertexShaderSpirvBytes = File.ReadAllBytes("myshader.vert.spv");
 			// byte[] fragmentShaderSpirvBytes = File.ReadAllBytes("myshader.frag.spv");

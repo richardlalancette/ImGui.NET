@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using ImGuiNET;
 
-namespace ImGui.NET.SampleProgram
+namespace ImGui.Extensions
 {
     internal class DemoController : AbstractImController
     {

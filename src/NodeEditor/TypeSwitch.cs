@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ImGui.NET.SampleProgram
+namespace NodeEditor
 {
     static class TypeSwitch
     {

@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using ImGuiNET;
 
-namespace ImGui.NET.SampleProgram
+namespace ImGui.Extensions
 {
   public class ImWindowController : AbstractImController
   {

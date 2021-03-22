@@ -1,14 +1,13 @@
 ﻿using System.Numerics;
+using ImGui.Extensions;
 using ImGuiNET;
 using Newtonsoft.Json;
 using ImVec2 = System.Numerics.Vector2;
-using ImVec3 = System.Numerics.Vector3;
-using ImVec4 = System.Numerics.Vector4;
 using Im = ImGuiNET.ImGui;
 
 // https: //mikecodes.net/2020/05/11/in-app-scripts-with-c-roslyn/
 // https://www.newtonsoft.com/json/help/html/CreateJsonAnonymousObject.htm
-namespace ImGui.NET.SampleProgram
+namespace NodeEditor
 {
     public class Node
     {
@@ -33,7 +32,8 @@ namespace ImGui.NET.SampleProgram
         public bool Hovered;
         public bool LeftMouseButtonDown;
         public bool Dragged;
-
+        public static StyleSheet Styles = new();
+        
         public Node()
         {
         }
@@ -68,12 +68,12 @@ namespace ImGui.NET.SampleProgram
 
         public void Draw(Vector2 panningOffset, ImDrawListPtr drawList, int nodeIdx, ref bool openEditContextMenu)
         {
-            Im.PushItemWidth(StyleSheet.DefaultNodeWidth);
+            Im.PushItemWidth(Styles.DefaultNodeWidth);
             Im.PushID(Id);
 
             {
-                drawList.ChannelsSetCurrent(StyleSheet.ForegroundChannel);
-                Im.SetCursorScreenPos(panningOffset + Position + StyleSheet.NodeWindowPadding);
+                drawList.ChannelsSetCurrent(Styles.ForegroundChannel);
+                Im.SetCursorScreenPos(panningOffset + Position + Styles.NodeWindowPadding);
 
                 DrawNodeContentView();
                 DrawNodeBox(panningOffset, drawList, ref openEditContextMenu);
@@ -89,13 +89,13 @@ namespace ImGui.NET.SampleProgram
             for (int inputConnectorIndex = 0; inputConnectorIndex < InputsCount; inputConnectorIndex++)
             {
                 var connectorPos = panningOffset + GetInputSlotPos(inputConnectorIndex);
-                DrawConnector(drawList, connectorPos, StyleSheet.NodeSlotRadius);
+                DrawConnector(drawList, connectorPos, Styles.NodeSlotRadius);
             }
 
             for (int outputConnectorIndex = 0; outputConnectorIndex < OutputsCount; outputConnectorIndex++)
             {
                 var connectorPos = panningOffset + GetOutputSlotPos(outputConnectorIndex);
-                DrawConnector(drawList, connectorPos, StyleSheet.NodeSlotRadius);
+                DrawConnector(drawList, connectorPos, Styles.NodeSlotRadius);
             }
         }
 
@@ -141,7 +141,7 @@ namespace ImGui.NET.SampleProgram
             ImVec2 nodeRectMax = nodeRectMin + Size;
 
             // Display node box
-            drawList.ChannelsSetCurrent(StyleSheet.BackgroundChannel);
+            drawList.ChannelsSetCurrent(Styles.BackgroundChannel);
             Im.SetCursorScreenPos(nodeRectMin);
             Im.InvisibleButton("node", Size);
 
@@ -185,20 +185,20 @@ namespace ImGui.NET.SampleProgram
 
             if (Hovered)
             {
-                drawList.AddRectFilled(nodeRectMin, nodeRectMax, StyleSheet.GreyColor, Im.GetStyle().FrameRounding);
+                drawList.AddRectFilled(nodeRectMin, nodeRectMax, Styles.GreyColor, Im.GetStyle().FrameRounding);
             }
             else
             {
-                drawList.AddRectFilled(nodeRectMin, nodeRectMax, StyleSheet.DarkGreyColor, Im.GetStyle().FrameRounding);
+                drawList.AddRectFilled(nodeRectMin, nodeRectMax, Styles.DarkGreyColor, Im.GetStyle().FrameRounding);
             }
 
             if (Selected)
             {
-                drawList.AddRect(nodeRectMin, nodeRectMax, StyleSheet.White, Im.GetStyle().FrameRounding);
+                drawList.AddRect(nodeRectMin, nodeRectMax, Styles.White, Im.GetStyle().FrameRounding);
             }
             else
             {
-                drawList.AddRect(nodeRectMin, nodeRectMax, StyleSheet.NodeBorderColor, Im.GetStyle().FrameRounding);
+                drawList.AddRect(nodeRectMin, nodeRectMax, Styles.NodeBorderColor, Im.GetStyle().FrameRounding);
             }
         }
 
@@ -207,7 +207,7 @@ namespace ImGui.NET.SampleProgram
             Im.BeginGroup();
             View.Draw(Name, this);
             Im.EndGroup();
-            Size = Im.GetItemRectSize() + StyleSheet.NodeWindowPadding + StyleSheet.NodeWindowPadding;
+            Size = Im.GetItemRectSize() + Styles.NodeWindowPadding + Styles.NodeWindowPadding;
         }
     }
 }

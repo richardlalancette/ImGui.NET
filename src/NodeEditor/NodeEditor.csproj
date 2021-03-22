@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.23.3" />
+      <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ImGui.Extensions\ImGui.Extensions.csproj" />
+      <ProjectReference Include="..\ImGui.NET\ImGui.NET.csproj" />
+    </ItemGroup>
+
+</Project>

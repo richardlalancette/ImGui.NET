@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
-using Im = ImGuiNET.ImGui;
+using ImGui.Extensions;
 using ImGuiNET;
+using Im = ImGuiNET.ImGui;
 
-namespace ImGui.NET.SampleProgram
+namespace NodeEditor
 {
     public class UndefinedTypeComponent
     {

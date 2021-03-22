@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using NodeEditor;
 
-namespace ImGui.NET.SampleProgram
+namespace ImGui.NET.NodeEditor
 {
     public class MagickImageComponent
     {

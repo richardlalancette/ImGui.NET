@@ -4,7 +4,7 @@ using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
 
-namespace ImGui.NET.SampleProgram
+namespace ImGui.NET.NodeEditor
 {
     class Device
     {

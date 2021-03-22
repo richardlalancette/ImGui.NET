@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
+using NodeEditor;
 
 namespace ImGui.NET.SampleProgram
 {

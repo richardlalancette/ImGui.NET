@@ -1,9 +1,9 @@
 ﻿using System.Numerics;
 using ImGuiNET;
 
-namespace ImGui.NET.SampleProgram
+namespace ImGui.Extensions
 {
-    class DarkWindowStyle : Style
+    public class DarkWindowStyle : Style
     {
         public override void Apply()
         {

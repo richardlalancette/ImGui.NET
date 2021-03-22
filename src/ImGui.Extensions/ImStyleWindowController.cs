@@ -1,6 +1,6 @@
 ﻿using ImGuiNET;
 
-namespace ImGui.NET.SampleProgram
+namespace ImGui.Extensions
 {
     public class ImStyleWindowController : ImWindowController
     {

@@ -2,7 +2,7 @@
 using Veldrid;
 using Veldrid.SPIRV;
 
-namespace ImGui.NET.SampleProgram
+namespace ImGui.Extensions
 {
   public class ShaderTranspiler
   {
