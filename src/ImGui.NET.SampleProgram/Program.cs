@@ -3,6 +3,9 @@ using ImGui.Extensions;
 using ImGui.NET.NodeEditor;
 using ImGuiNET;
 using NodeEditor;
+using System;
+using System.Threading.Tasks;
+using Grpc.Net.Client;
 
 // http://shader-playground.timjones.io/#
 namespace ImGui.NET.SampleProgram
@@ -45,6 +48,14 @@ void main()
 			Setup();
 			Run();
 		}
+		
+		private static async Task gRPCExample()
+		{
+			using var channel = GrpcChannel.ForAddress("https://localhost:5001");
+			var client = new Greeter.GreeterClient(channel);
+			var reply = await client.SayHelloAsync(new HelloRequest { Name = "GreeterClient" });
+			Console.WriteLine(reply);
+		}
 
 		private static void Setup()
 		{
@@ -67,6 +78,8 @@ void main()
 			// MainWindow.Enabled = false;
 			// SecondWindow.Enabled = false;
 			// StylesWindow.Enabled = false;
+
+			// The port number(5001) must match the port of the gRPC server.
 		}
 
 		private static void Run()

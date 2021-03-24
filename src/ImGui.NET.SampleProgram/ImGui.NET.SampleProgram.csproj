@@ -8,6 +8,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Protobuf Include="Protos\*.proto" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.15.6" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.36.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.36.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Veldrid.SPIRV" Version="1.0.14" />
     <ProjectReference Include="..\ImGui.Extensions\ImGui.Extensions.csproj" />
     <ProjectReference Include="..\ImGui.NET\ImGui.NET.csproj" />
