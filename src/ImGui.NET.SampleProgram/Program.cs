@@ -17,7 +17,7 @@ namespace ImGui.NET.SampleProgram
 		private static readonly ImWindowController SecondWindow = new("Second");
 		private static readonly ImStyleWindowController StylesWindow = new("Styles", 400, 800, ImGuiCond.Once);
 		private static readonly ImNodeEditorWindowController NodeEditorWindow = new("NodeEditor");
-		private static readonly ImShaderEditor ShaderEditor = new("Shader Editor", 400, 800, ImGuiCond.Appearing);
+		private static readonly ImShaderEditor ShaderEditor = new("Shader Editor", 500, 800, ImGuiCond.Appearing);
 		private static Dictionary<string, ImWindowController> Controllers { get; set; } = new();
 
 		private static void Main()
@@ -62,7 +62,6 @@ namespace ImGui.NET.SampleProgram
 		private static void Run()
 		{
 			Device.Create();
-			ShaderEditor.Resource = Device.ResourceFactory();
 
 			while (Device.Exists())
 			{

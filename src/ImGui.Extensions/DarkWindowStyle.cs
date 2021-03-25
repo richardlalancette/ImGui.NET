@@ -8,7 +8,7 @@ namespace ImGui.Extensions
         public override void Apply()
         {
             base.Apply();
-            ImGuiNET.ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(20, 20));
+            ImGuiNET.ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(2, 2));
         }
 
         public override void Restore()

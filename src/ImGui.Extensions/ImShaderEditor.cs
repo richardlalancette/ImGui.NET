@@ -5,6 +5,17 @@ using Veldrid;
 using Veldrid.SPIRV;
 using Im = ImGuiNET.ImGui;
 
+/*!
+case GraphicsBackend.Direct3D11:
+    return CrossCompileTarget.HLSL;
+case GraphicsBackend.OpenGL:
+    return CrossCompileTarget.GLSL;
+case GraphicsBackend.Metal:
+    return CrossCompileTarget.MSL;
+case GraphicsBackend.OpenGLES:
+    return CrossCompileTarget.ESSL;
+*/
+
 namespace ImGui.Extensions
 {
 	public class ImShaderEditor : ImWindowController
@@ -34,15 +45,18 @@ void main()
     fsout_Color = fsin_Color;
 }";
 
-		public ResourceFactory Resource
-		{
-			get;
-			set;
-		}
 		private string _spirvVertexShader = VertexCode;
 		private string _spirvFragmentShader = FragmentCode;
-		private string _hlslVertexShader = new("");
-		private string _hlslFragmentShader = new("");
+		private readonly string[] _vertexShader = new string[4];
+		private readonly string[] _fragmentShader = new string[4];
+
+		private readonly CrossCompileTarget[] _targets = 
+		{
+				CrossCompileTarget.HLSL,
+				CrossCompileTarget.GLSL,
+				CrossCompileTarget.ESSL,
+				CrossCompileTarget.MSL
+		};
 
 		public ImShaderEditor(string title) : base(title)
 		{
@@ -66,51 +80,69 @@ void main()
 				ConvertAll();
 			}
 
-			Im.InputTextMultiline("Spriv Vertex Shader", ref _spirvVertexShader, 65536, new Vector2(400, 200));
-			Im.InputTextMultiline("Spriv Fragment Shader", ref _spirvFragmentShader, 65536, new Vector2(400, 200));
-			Im.InputTextMultiline("Glsl Vertex Shader", ref _hlslVertexShader, 65536, new Vector2(400, 200));
-			Im.InputTextMultiline("Glsl Fragment  Shader", ref _hlslFragmentShader, 65536, new Vector2(400, 200));
-		}
-		/*!
-        case GraphicsBackend.Direct3D11:
-            return CrossCompileTarget.HLSL;
-        case GraphicsBackend.OpenGL:
-            return CrossCompileTarget.GLSL;
-        case GraphicsBackend.Metal:
-            return CrossCompileTarget.MSL;
-        case GraphicsBackend.OpenGLES:
-            return CrossCompileTarget.ESSL;
-        */
-		private void ConvertAll()
-		{
-			ResourceFactory resourceFactory = Resource;
-			ShaderDescription vertexShaderDesc = new ShaderDescription(ShaderStages.Vertex, Encoding.UTF8.GetBytes(_spirvVertexShader), "main");
-			ShaderDescription fragmentShaderDesc = new ShaderDescription(ShaderStages.Fragment, Encoding.UTF8.GetBytes(_spirvFragmentShader), "main");
-			Shader[] shaders = null;
-			try
+			int id = 0;
+			Im.InputTextMultiline("Spriv Vertex Shader", ref _spirvVertexShader, 65536, new Vector2(400, 100));
+
+			foreach(var vertexShader in _vertexShader)
 			{
-				shaders = resourceFactory.CreateFromSpirv(vertexShaderDesc, fragmentShaderDesc);
-			}
-			catch
-			{
-				_hlslVertexShader = "Error";
-				_hlslFragmentShader = "Error ";
-			}
-			finally
-			{
-				if (shaders != null && shaders.Length == 2)
+				var vsr = vertexShader;
+				if (vsr != null)
 				{
-					_hlslVertexShader = shaders[1].ToString(); // TODO have yet to find a way to take the compiled version and turn back to text :)
-					_hlslFragmentShader = shaders[0].ToString();
+					Im.InputTextMultiline(id + ":" + _targets[id], ref vsr, 65536, new Vector2(400, 100));
+					id++;
 				}
 			}
 
-			// byte[] vertexShaderSpirvBytes = File.ReadAllBytes("myshader.vert.spv");
-			// byte[] fragmentShaderSpirvBytes = File.ReadAllBytes("myshader.frag.spv");
-			// var vertexShaderDescription = new ShaderDescription(ShaderStages.Vertex, vertexShaderSpirvBytes, "main");
-			// var fragmentShaderDescription = new ShaderDescription(ShaderStages.Fragment, fragmentShaderSpirvBytes, "main");
-			// var shaders = resourceFactory.CreateFromSpirv(vertexShaderDescription, fragmentShaderDescription);
+			Im.InputTextMultiline("Spriv Fragment Shader", ref _spirvFragmentShader, 65536, new Vector2(400, 100));
+			foreach(var fragmentShader in _fragmentShader)
+			{
+				var fsr = fragmentShader;
+				if (fsr != null)
+				{
+					Im.InputTextMultiline(id + ":" + _targets[id%4], ref fsr, 65536, new Vector2(400, 100));
+					id++;
+				}
+			}
+		}
+		
+		private void ConvertAll()
+		{
+			VertexFragmentCompilationResult result = null;
+			byte[] vsBytes = Encoding.UTF8.GetBytes(_spirvVertexShader);
+			byte[] fsBytes = Encoding.UTF8.GetBytes(_spirvFragmentShader);
+			int i = 0;
 
+			foreach(var target in _targets)
+			{
+				try
+				{
+					SpecializationConstant[] specializations = {
+							new(100, 125u),
+							new(101, true),
+							new(102, 0.75f),
+					};
+
+					result = SpirvCompilation.CompileVertexFragment(
+						vsBytes,
+						fsBytes,
+						target,
+						new CrossCompileOptions(false, false, specializations));
+				}
+				catch
+				{
+					_vertexShader[i] = "Error";
+					_fragmentShader[i] = "Error ";
+				}
+				finally
+				{
+					if (result != null)
+					{
+						_vertexShader[i] = result.VertexShader;
+						_fragmentShader[i] = result.FragmentShader;
+					}
+					i++;
+				}
+			}
 		}
 	}
 }
