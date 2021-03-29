@@ -14,4 +14,8 @@
       <PackageReference Include="Veldrid.SPIRV" Version="1.0.14" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Include="ImGuiExtension.dll" />
+    </ItemGroup>
+
 </Project>

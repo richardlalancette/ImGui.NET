@@ -26,13 +26,13 @@ namespace ImGui.NET.SampleProgram
 			Run();
 		}
 		
-		private static async Task gRPCExample()
-		{
-			using var channel = GrpcChannel.ForAddress("https://localhost:5001");
-			var client = new Greeter.GreeterClient(channel);
-			var reply = await client.SayHelloAsync(new HelloRequest { Name = "GreeterClient" });
-			Console.WriteLine(reply);
-		}
+		// private static async Task gRPCExample()
+		// {
+		// 	using var channel = GrpcChannel.ForAddress("https://localhost:5001");
+		// 	var client = new Greeter.GreeterClient(channel);
+		// 	var reply = await client.SayHelloAsync(new HelloRequest { Name = "GreeterClient" });
+		// 	Console.WriteLine(reply);
+		// }
 
 		private static void Setup()
 		{

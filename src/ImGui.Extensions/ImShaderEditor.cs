@@ -1,25 +1,25 @@
 ﻿using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using ImGuiNET;
 using Veldrid;
 using Veldrid.SPIRV;
 using Im = ImGuiNET.ImGui;
 
-/*!
-case GraphicsBackend.Direct3D11:
-    return CrossCompileTarget.HLSL;
-case GraphicsBackend.OpenGL:
-    return CrossCompileTarget.GLSL;
-case GraphicsBackend.Metal:
-    return CrossCompileTarget.MSL;
-case GraphicsBackend.OpenGLES:
-    return CrossCompileTarget.ESSL;
-*/
-
 namespace ImGui.Extensions
 {
 	public class ImShaderEditor : ImWindowController
 	{
+
+		/// <summary>
+		/// The native methods in the DLL's unmanaged code.
+		/// </summary>
+		internal static class UnsafeNativeMethods
+		{
+			[DllImport("ImGuiExtension.dll")]
+			public static extern void CreateTextEditor();
+		}
+		
 		private const string VertexCode = @"
 #version 450
 
@@ -47,8 +47,8 @@ void main()
 
 		private string _spirvVertexShader = VertexCode;
 		private string _spirvFragmentShader = FragmentCode;
-		private readonly string[] _vertexShader = new string[4];
-		private readonly string[] _fragmentShader = new string[4];
+		private readonly string[] _convertedVertexShaders = new string[4];
+		private readonly string[] _convertedFragmentShaders = new string[4];
 
 		private readonly CrossCompileTarget[] _targets = 
 		{
@@ -66,7 +66,9 @@ void main()
 		}
 		public ImShaderEditor(string title, int width, int height, ImGuiCond sizeCondition) : base(title, width, height, sizeCondition)
 		{
+			// UnsafeNativeMethods.CreateTextEditor();
 		}
+		
 		public ImShaderEditor(string title, int width, int height, ImGuiCond sizeCondition, ImGuiWindowFlags windowStyle) : base(title, width, height, sizeCondition, windowStyle)
 		{
 		}
@@ -83,7 +85,7 @@ void main()
 			int id = 0;
 			Im.InputTextMultiline("Spriv Vertex Shader", ref _spirvVertexShader, 65536, new Vector2(400, 100));
 
-			foreach(var vertexShader in _vertexShader)
+			foreach(var vertexShader in _convertedVertexShaders)
 			{
 				var vsr = vertexShader;
 				if (vsr != null)
@@ -94,7 +96,7 @@ void main()
 			}
 
 			Im.InputTextMultiline("Spriv Fragment Shader", ref _spirvFragmentShader, 65536, new Vector2(400, 100));
-			foreach(var fragmentShader in _fragmentShader)
+			foreach(var fragmentShader in _convertedFragmentShaders)
 			{
 				var fsr = fragmentShader;
 				if (fsr != null)
@@ -130,15 +132,15 @@ void main()
 				}
 				catch
 				{
-					_vertexShader[i] = "Error";
-					_fragmentShader[i] = "Error ";
+					_convertedVertexShaders[i] = "Error";
+					_convertedFragmentShaders[i] = "Error ";
 				}
 				finally
 				{
 					if (result != null)
 					{
-						_vertexShader[i] = result.VertexShader;
-						_fragmentShader[i] = result.FragmentShader;
+						_convertedVertexShaders[i] = result.VertexShader;
+						_convertedFragmentShaders[i] = result.FragmentShader;
 					}
 					i++;
 				}
